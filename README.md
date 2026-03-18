@@ -17,7 +17,9 @@ Kaihang Qian, 2024213624, 241118371, jp2024213624@qmul.ac.uk
 ## Task Allocation
 
  Homepage - Xueye Li
+
  Game - Kaihang Qian
+ 
  Quiz - Bingyue Wang
 
 ## Assigned TA: Wantong Zhao

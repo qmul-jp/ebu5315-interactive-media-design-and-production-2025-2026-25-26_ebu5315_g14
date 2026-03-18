@@ -10,8 +10,14 @@
 
 Xueye Li, 2024213613, 241118278, 2024213613@bupt.cn
 
-Bingyue Wang, 2024213606, 241118555, jp2024213606@qmul.uk
+Bingyue Wang, 2024213606, 241118555, jp2024213606@qmul.ac.uk
 
-Name, BUPT Student Number, QM Student Number, Email
+Kaihang Qian, 2024213624, 241118371, jp2024213624@qmul.ac.uk
+
+## Task Allocation
+
+ Homepage - Xueye Li
+ Game - Kaihang Qian
+ Quiz - Bingyue Wang
 
 ## Assigned TA: Wantong Zhao

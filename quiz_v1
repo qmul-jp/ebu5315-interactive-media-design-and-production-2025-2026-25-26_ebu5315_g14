@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>答题界面 - 小组项目</title>
+    <style>
+        /* 基础样式 */
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .quiz-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+        }
+        .question-section {
+            margin-bottom: 20px;
+        }
+        .question-text {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .options-list {
+            list-style: none;
+            padding: 0;
+        }
+        .option {
+            padding: 10px 15px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .option:hover {
+            background-color: #f0f0f0;
+        }
+        .option.selected {
+            background-color: #e0f0ff;
+            border-color: #007bff;
+        }
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .progress {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <!-- 进度显示 -->
+        <div class="progress" id="progress">题目 1 / 5</div>
+
+        <!-- 题目区域 -->
+        <div class="question-section">
+            <div class="question-text" id="question-text">题目加载中...</div>
+            <ul class="options-list" id="options-list">
+                <!-- 选项由JS动态生成 -->
+            </ul>
+        </div>
+
+        <!-- 导航按钮 -->
+        <div class="navigation">
+            <button id="prev-btn" disabled>上一题</button>
+            <button id="next-btn">下一题</button>
+            <button id="submit-btn" style="display: none;">提交答案</button>
+        </div>
+    </div>
+
+    <script>
+        // v1 版本：硬编码题目数据（后续版本可改为从接口获取）
+        const questions = [
+            {
+                id: 1,
+                text: "以下哪个是 JavaScript 的基本数据类型？",
+                options: ["Object", "Array", "String", "Function"],
+                correctIndex: 2 // 对应 "String"
+            },
+            {
+                id: 2,
+                text: "CSS 中用于设置元素内边距的属性是？",
+                options: ["margin", "padding", "border", "spacing"],
+                correctIndex: 1 // 对应 "padding"
+            },
+            {
+                id: 3,
+                text: "HTML 中用于定义超链接的标签是？",
+                options: ["<link>", "<a>", "<href>", "<url>"],
+                correctIndex: 1 // 对应 "<a>"
+            },
+            {
+                id: 4,
+                text: "以下哪个不是 Git 命令？",
+                options: ["git commit", "git push", "git save", "git pull"],
+                correctIndex: 2 // 对应 "git save"
+            },
+            {
+                id: 5,
+                text: "VSCode 中用于打开命令面板的快捷键是？",
+                options: ["Ctrl+S", "Ctrl+Shift+P", "F5", "Ctrl+C"],
+                correctIndex: 1 // 对应 "Ctrl+Shift+P"
+            }
+        ];
+
+        // 状态管理
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(questions.length).fill(null); // 存储用户选择的答案索引
+
+        // DOM 元素
+        const questionTextEl = document.getElementById('question-text');
+        const optionsListEl = document.getElementById('options-list');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const submitBtn = document.getElementById('submit-btn');
+        const progressEl = document.getElementById('progress');
+
+        // 渲染题目
+        function renderQuestion() {
+            const question = questions[currentQuestionIndex];
+            questionTextEl.textContent = question.text;
+            progressEl.textContent = `题目 ${currentQuestionIndex + 1} / ${questions.length}`;
+
+            // 清空选项列表
+            optionsListEl.innerHTML = '';
+
+            // 生成选项
+            question.options.forEach((option, index) => {
+                const li = document.createElement('li');
+                li.className = 'option';
+                if (index === userAnswers[currentQuestionIndex]) {
+                    li.classList.add('selected');
+                }
+                li.textContent = option;
+                li.addEventListener('click', () => selectOption(index));
+                optionsListEl.appendChild(li);
+            });
+
+            // 更新按钮状态
+            prevBtn.disabled = currentQuestionIndex === 0;
+            nextBtn.style.display = currentQuestionIndex === questions.length - 1 ? 'none' : 'inline-block';
+            submitBtn.style.display = currentQuestionIndex === questions.length - 1 ? 'inline-block' : 'none';
+        }
+
+        // 选择选项
+        function selectOption(optionIndex) {
+            userAnswers[currentQuestionIndex] = optionIndex;
+            renderQuestion(); // 重新渲染以更新选中状态
+        }
+
+        // 上一题
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        });
+
+        // 下一题
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            }
+        });
+
+        // 提交（v1 版本仅做简单提示，后续版本可跳转结果页）
+        submitBtn.addEventListener('click', () => {
+            const correctCount = userAnswers.reduce((count, answer, index) => {
+                return count + (answer === questions[index].correctIndex ? 1 : 0);
+            }, 0);
+            alert(`答题完成！你答对了 ${correctCount} 题，得分：${(correctCount / questions.length * 100).toFixed(0)}分`);
+            // 后续版本：window.location.href = 'result.html?score=' + correctCount;
+        });
+
+        // 初始化
+        renderQuestion();
+    </script>
+</body>
+</html>

@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CircleLab - Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --text-dark: #1a1a1a;
+            --text-light: #666;
+            --bg-light: #f5f7fa;
+            --border-color: #e0e0e0;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #ffffff;
+            color: var(--text-dark);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        /* Navigation Bar */
+        nav.navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 60px;
+            border-bottom: 2px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.98);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        body.dark-mode nav.navbar {
+            background: rgba(26, 26, 26, 0.98);
+            border-bottom-color: #333;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: 2px solid var(--text-dark);
+            border-radius: 25px;
+            color: var(--text-dark);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .logo {
+            border-color: #e0e0e0;
+        }
+
+        .logo:hover {
+            background: var(--text-dark);
+            color: white;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            padding: 8px 16px;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        body.dark-mode .nav-menu a {
+            color: #e0e0e0;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            border-bottom-color: var(--primary-color);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .language-switcher {
+            padding: 8px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            background: transparent;
+            color: var(--text-dark);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .language-switcher {
+            border-color: #333;
+            color: #e0e0e0;
+        }
+
+        .dark-mode-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: rotate(20deg);
+        }
+
+        /* Main Game Container */
+        .game-page {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 60px;
+        }
+
+        .breadcrumb {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: var(--text-dark);
+        }
+
+        body.dark-mode .page-title {
+            color: #ffffff;
+        }
+
+        /* Game Content Layout */
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        /* Canvas Section */
+        .canvas-section {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .canvas-section {
+            background: #2a2a2a;
+            border-color: #333;
+        }
+
+        .canvas-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+        }
+
+        body.dark-mode .canvas-title {
+            color: #ffffff;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            max-width: 500px;
+            height: 500px;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            cursor: crosshair;
+            display: block;
+            margin: 0 auto;
+        }
+
+        body.dark-mode #gameCanvas {
+            background: #1a1a1a;
+            border-color: #444;
+        }
+
+        .position-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+            text-align: center;
+            color: var(--text-light);
+        }
+
+        body.dark-mode .position-display {
+            background: #1a1a1a;
+            border-color: #444;
+            color: #aaa;
+        }
+
+        /* Info Panel */
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-card {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .info-card {
+            background: #2a2a2a;
+            border-color: #333;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+        }
+
+        body.dark-mode .card-title {
+            color: #ffffff;
+        }
+
+        .card-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-light);
+        }
+
+        body.dark-mode .card-content {
+            color: #aaa;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+        }
+
+        body.dark-mode .stat-row {
+            border-bottom-color: #444;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+
+        .theorem-text {
+            background: #e8f4f8;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 5px;
+            font-style: italic;
+            color: #2c5282;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        body.dark-mode .theorem-text {
+            background: #1e3a47;
+            color: #6ba3cb;
+        }
+
+        .hint-text {
+            background: #fff9e6;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #7d6608;
+        }
+
+        body.dark-mode .hint-text {
+            background: #3d3218;
+            color: #d4a856;
+        }
+
+        .feedback-box {
+            padding: 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            display: none;
+        }
+
+        .feedback-box.show {
+            display: flex;
+        }
+
+        .feedback-box.correct {
+            background: #d4edda;
+            color: var(--success-color);
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback-box.wrong {
+            background: #f8d7da;
+            color: var(--error-color);
+            border: 1px solid #f5c6cb;
+        }
+
+        body.dark-mode .feedback-box.correct {
+            background: #1e3a1a;
+            color: #5cb85c;
+            border-color: #3d6030;
+        }
+
+        body.dark-mode .feedback-box.wrong {
+            background: #3a1f1f;
+            color: #ff6b6b;
+            border-color: #5d3333;
+        }
+
+        /* Control Buttons */
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            border: 2px solid var(--border-color);
+        }
+
+        body.dark-mode .btn-secondary {
+            background: #2a2a2a;
+            color: #e0e0e0;
+            border-color: #444;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .game-page {
+                padding: 30px 40px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav.navbar {
+                padding: 15px 20px;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .nav-menu {
+                gap: 20px;
+                font-size: 14px;
+            }
+
+            .game-page {
+                padding: 20px 15px;
+            }
+
+            .page-title {
+                font-size: 24px;
+                margin-bottom: 30px;
+            }
+
+            .canvas-section,
+            .info-card {
+                padding: 20px;
+            }
+
+            #gameCanvas {
+                max-width: 100%;
+                height: 400px;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            nav.navbar {
+                padding: 10px 15px;
+            }
+
+            .logo {
+                font-size: 18px;
+                padding: 8px 12px;
+            }
+
+            .nav-menu {
+                gap: 15px;
+                font-size: 12px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .canvas-section,
+            .info-card {
+                padding: 15px;
+            }
+
+            #gameCanvas {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="#" class="logo">CircleLab</a>
+        <ul class="nav-menu">
+            <li><a href="#" class="nav-link" data-page="homepage">Homepage</a></li>
+            <li><a href="#" class="nav-link" data-page="quiz">Quiz</a></li>
+            <li><a href="#" class="nav-link active" data-page="game">Game</a></li>
+        </ul>
+        <div class="nav-right">
+            <button class="language-switcher" id="languageBtn">EN/CN</button>
+            <button class="dark-mode-toggle" id="darkModeBtn">🌙</button>
+        </div>
+    </nav>
+
+    <!-- Main Game Content -->
+    <div class="game-page">
+        <div class="breadcrumb">Game ></div>
+        <h1 class="page-title">Inscribed Angles Game</h1>
+
+        <div class="game-layout">
+            <!-- Left: Canvas Section -->
+            <div class="canvas-section">
+                <h3 class="canvas-title">Circle Canvas</h3>
+                <canvas id="gameCanvas" width="500" height="500"></canvas>
+                <div class="position-display">
+                    <strong>Point Position:</strong> <span id="positionInfo">X: 0, Y: 0 | Angle: 0°</span>
+                </div>
+            </div>
+
+            <!-- Right: Info Panel -->
+            <div class="info-panel">
+                <!-- Objective Card -->
+                <div class="info-card">
+                    <h4 class="card-title">🎯 Objective</h4>
+                    <div class="card-content">
+                        <p>Drag the blue point on the circle to form the same inscribed angle as shown. The inscribed angle is determined by the position of your point relative to points A and B.</p>
+                    </div>
+                </div>
+
+                <!-- Score & Level Card -->
+                <div class="info-card">
+                    <h4 class="card-title">📊 Progress</h4>
+                    <div class="stat-row">
+                        <span class="stat-label">Current Level:</span>
+                        <span class="stat-value" id="levelDisplay">1</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Score:</span>
+                        <span class="stat-value" id="scoreDisplay">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Target Angle:</span>
+                        <span class="stat-value" id="angleDisplay">—</span>
+                    </div>
+                </div>
+
+                <!-- Theorem Card -->
+                <div class="info-card">
+                    <h4 class="card-title">✓ Theorem</h4>
+                    <div class="theorem-text" id="theoremText">
+                        Inscribed angles subtended by the same arc are equal.
+                    </div>
+                </div>
+
+                <!-- Hint Card -->
+                <div class="info-card">
+                    <h4 class="card-title">💡 Hint</h4>
+                    <div class="hint-text" id="hintText">
+                        Look for points on the circle that form the same angle when looking at points A and B. The angle remains constant on the same arc.
+                    </div>
+                </div>
+
+                <!-- Feedback Box -->
+                <div class="feedback-box" id="feedbackBox"></div>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="button-group">
+            <button class="btn btn-primary" id="checkBtn" onclick="checkAnswer()">✓ Check Answer</button>
+            <button class="btn btn-secondary" id="nextBtn" onclick="nextLevel()" style="display: none;">→ Next Level</button>
+            <button class="btn btn-secondary" id="restartBtn" onclick="restartGame()">↺ Restart</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            draggingPoint: false,
+            pointX: 0,
+            pointY: 0,
+            centerX: 0,
+            centerY: 0,
+            radius: 150,
+            pointA: null,
+            pointB: null,
+            targetAngle: null,
+            selectedAngle: null,
+            tolerance: 5,
+            currentLanguage: localStorage.getItem('language') || 'EN'
+        };
+
+        // Initialize Canvas
+        function initCanvas() {
+            gameState.ctx = gameState.canvas.getContext('2d');
+            gameState.centerX = gameState.canvas.width / 2;
+            gameState.centerY = gameState.canvas.height / 2;
+            
+            // Initial point position (top of circle)
+            gameState.pointX = gameState.centerX;
+            gameState.pointY = gameState.centerY - gameState.radius;
+            
+            generateNewLevel();
+            setupCanvasEvents();
+            draw();
+        }
+
+        // Generate New Level
+        function generateNewLevel() {
+            const angleA = Math.random() * Math.PI * 2;
+            const angleB = angleA + (Math.PI / 3 + Math.random() * Math.PI / 6);
+
+            gameState.pointA = {
+                x: gameState.centerX + gameState.radius * Math.cos(angleA),
+                y: gameState.centerY + gameState.radius * Math.sin(angleA),
+                angle: angleA
+            };
+
+            gameState.pointB = {
+                x: gameState.centerX + gameState.radius * Math.cos(angleB),
+                y: gameState.centerY + gameState.radius * Math.sin(angleB),
+                angle: angleB
+            };
+
+            // Calculate target inscribed angle
+            gameState.targetAngle = calculateInscribedAngle(
+                getThetaFromPoint(gameState.pointX, gameState.pointY),
+                gameState.pointA,
+                gameState.pointB
+            );
+
+            document.getElementById('angleDisplay').textContent = 
+                (gameState.targetAngle * 180 / Math.PI).toFixed(1) + '°';
+
+            hideFeedback();
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('checkBtn').style.display = 'block';
+        }
+
+        // Get angle theta from canvas point
+        function getThetaFromPoint(x, y) {
+            return Math.atan2(y - gameState.centerY, x - gameState.centerX);
+        }
+
+        // Calculate inscribed angle
+        function calculateInscribedAngle(theta, pointA, pointB) {
+            const px = gameState.centerX + gameState.radius * Math.cos(theta);
+            const py = gameState.centerY + gameState.radius * Math.sin(theta);
+
+            const vax = pointA.x - px;
+            const vay = pointA.y - py;
+            const vbx = pointB.x - px;
+            const vby = pointB.y - py;
+
+            const dotProduct = vax * vbx + vay * vby;
+            const magA = Math.sqrt(vax * vax + vay * vay);
+            const magB = Math.sqrt(vbx * vbx + vby * vby);
+
+            if (magA === 0 || magB === 0) return 0;
+
+            const cosAngle = dotProduct / (magA * magB);
+            const clampedCos = Math.max(-1, Math.min(1, cosAngle));
+            return Math.acos(clampedCos);
+        }
+
+        // Draw Canvas
+        function draw() {
+            const ctx = gameState.ctx;
+            const { centerX, centerY, radius, pointX, pointY, pointA, pointB } = gameState;
+
+            // Clear canvas
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+
+            // Draw circle
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw diameter line AB
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(pointA.x, pointA.y);
+            ctx.lineTo(pointB.x, pointB.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw points A and B
+            drawPoint(pointA.x, pointA.y, '#e74c3c', 'A', 12);
+            drawPoint(pointB.x, pointB.y, '#e74c3c', 'B', 12);
+
+            // Draw draggable point
+            drawPoint(pointX, pointY, '#3498db', '', 10);
+
+            // Draw angle visualization
+            if (Math.hypot(pointX - centerX, pointY - centerY) > radius - 10) {
+                ctx.strokeStyle = '#27ae60';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(pointX, pointY);
+                ctx.lineTo(pointA.x, pointA.y);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(pointX, pointY);
+                ctx.lineTo(pointB.x, pointB.y);
+                ctx.stroke();
+            }
+
+            // Update position display
+            const theta = getThetaFromPoint(pointX, pointY);
+            const angle = (theta * 180 / Math.PI + 360) % 360;
+            gameState.selectedAngle = calculateInscribedAngle(theta, pointA, pointB);
+            document.getElementById('positionInfo').textContent = 
+                `X: ${pointX.toFixed(0)}, Y: ${pointY.toFixed(0)} | Angle: ${angle.toFixed(1)}° | Selected: ${(gameState.selectedAngle * 180 / Math.PI).toFixed(1)}°`;
+        }
+
+        // Draw a point with label
+        function drawPoint(x, y, color, label, radius) {
+            const ctx = gameState.ctx;
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (label) {
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(label, x, y - 25);
+            }
+        }
+
+        // Canvas Events
+        function setupCanvasEvents() {
+            gameState.canvas.addEventListener('mousedown', handleMouseDown);
+            gameState.canvas.addEventListener('mousemove', handleMouseMove);
+            gameState.canvas.addEventListener('mouseup', handleMouseUp);
+            gameState.canvas.addEventListener('mouseleave', handleMouseUp);
+
+            // Touch events
+            gameState.canvas.addEventListener('touchstart', handleTouchStart);
+            gameState.canvas.addEventListener('touchmove', handleTouchMove);
+            gameState.canvas.addEventListener('touchend', handleTouchEnd);
+        }
+
+        function handleMouseDown(e) {
+            const rect = gameState.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            justifyDragStart(x, y);
+        }
+
+        function handleMouseMove(e) {
+            if (!gameState.draggingPoint) return;
+            const rect = gameState.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            constrainPointToCircle(x, y);
+            draw();
+        }
+
+        function handleMouseUp() {
+            gameState.draggingPoint = false;
+        }
+
+        function handleTouchStart(e) {
+            const rect = gameState.canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            justifyDragStart(x, y);
+        }
+
+        function handleTouchMove(e) {
+            if (!gameState.draggingPoint) return;
+            e.preventDefault();
+            const rect = gameState.canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            constrainPointToCircle(x, y);
+            draw();
+        }
+
+        function handleTouchEnd() {
+            gameState.draggingPoint = false;
+        }
+
+        function justifyDragStart(x, y) {
+            const dist = Math.hypot(x - gameState.pointX, y - gameState.pointY);
+            if (dist < 25) {
+                gameState.draggingPoint = true;
+            }
+        }
+
+        function constrainPointToCircle(x, y) {
+            const dx = x - gameState.centerX;
+            const dy = y - gameState.centerY;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist > gameState.radius) {
+                gameState.pointX = gameState.centerX + (dx / dist) * gameState.radius;
+                gameState.pointY = gameState.centerY + (dy / dist) * gameState.radius;
+            } else {
+                gameState.pointX = x;
+                gameState.pointY = y;
+            }
+        }
+
+        // Check Answer
+        function checkAnswer() {
+            const angleDiff = Math.abs(gameState.selectedAngle - gameState.targetAngle);
+            const isCorrect = angleDiff < gameState.tolerance * Math.PI / 180;
+
+            const feedback = document.getElementById('feedbackBox');
+            if (isCorrect) {
+                gameState.score++;
+                feedback.textContent = '✓ Correct! Great job!';
+                feedback.className = 'feedback-box show correct';
+                document.getElementById('checkBtn').style.display = 'none';
+                document.getElementById('nextBtn').style.display = 'block';
+                document.getElementById('scoreDisplay').textContent = gameState.score;
+            } else {
+                feedback.textContent = `✗ Not quite. Try again! (Difference: ${(angleDiff * 180 / Math.PI).toFixed(1)}°)`;
+                feedback.className = 'feedback-box show wrong';
+            }
+        }
+
+        // Next Level
+        function nextLevel() {
+            gameState.currentLevel++;
+            document.getElementById('levelDisplay').textContent = gameState.currentLevel;
+            generateNewLevel();
+            draw();
+        }
+
+        // Restart Game
+        function restartGame() {
+            gameState.currentLevel = 1;
+            gameState.score = 0;
+            document.getElementById('levelDisplay').textContent = '1';
+            document.getElementById('scoreDisplay').textContent = '0';
+            generateNewLevel();
+            draw();
+        }
+
+        // Feedback
+        function hideFeedback() {
+            const feedback = document.getElementById('feedbackBox');
+            feedback.className = 'feedback-box';
+            feedback.textContent = '';
+        }
+
+        // Dark Mode
+        const darkModeBtn = document.getElementById('darkModeBtn');
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+            darkModeBtn.textContent = '☀️';
+        }
+
+        darkModeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const newMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', newMode);
+            darkModeBtn.textContent = newMode ? '☀️' : '🌙';
+        });
+
+        // Language
+        const languageBtn = document.getElementById('languageBtn');
+        const translations = {
+            EN: {
+                objective: '🎯 Objective',
+                objectiveText: 'Drag the blue point on the circle to form the same inscribed angle as shown. The inscribed angle is determined by the position of your point relative to points A and B.',
+                progress: '📊 Progress',
+                level: 'Current Level:',
+                score: 'Score:',
+                target: 'Target Angle:',
+                theorem: '✓ Theorem',
+                theoremText: 'Inscribed angles subtended by the same arc are equal.',
+                hint: '💡 Hint',
+                hintText: 'Look for points on the circle that form the same angle when looking at points A and B. The angle remains constant on the same arc.',
+                check: '✓ Check Answer',
+                next: '→ Next Level',
+                restart: '↺ Restart',
+                canvasTitle: 'Circle Canvas',
+                positionLabel: 'Point Position:'
+            },
+            CN: {
+                objective: '🎯 目标',
+                objectiveText: '拖动圆上的蓝点以形成相同的圆周角。圆周角由您的点相对于点A和B的位置决定。',
+                progress: '📊 进度',
+                level: '当前级别:',
+                score: '得分:',
+                target: '目标角度:',
+                theorem: '✓ 定理',
+                theoremText: '由同一弧所对的圆周角相等。',
+                hint: '💡 提示',
+                hintText: '在圆上找到形成相同角度（观察点A和B）的点。角度在同一弧上保持不变。',
+                check: '✓ 检查答案',
+                next: '→ 下一关',
+                restart: '↺ 重新开始',
+                canvasTitle: '圆形画布',
+                positionLabel: '点的位置:'
+            }
+        };
+
+        languageBtn.addEventListener('click', () => {
+            gameState.currentLanguage = gameState.currentLanguage === 'EN' ? 'CN' : 'EN';
+            localStorage.setItem('language', gameState.currentLanguage);
+            languageBtn.textContent = gameState.currentLanguage === 'EN' ? 'EN/CN' : 'EN/CN';
+            updateLanguageDisplay();
+        });
+
+        function updateLanguageDisplay() {
+            const lang = translations[gameState.currentLanguage];
+            document.querySelectorAll('.card-title')[0].textContent = lang.objective;
+            document.querySelectorAll('.card-content')[0].textContent = lang.objectiveText;
+            document.querySelectorAll('.card-title')[1].textContent = lang.progress;
+            document.querySelectorAll('.stat-label')[0].textContent = lang.level;
+            document.querySelectorAll('.stat-label')[1].textContent = lang.score;
+            document.querySelectorAll('.stat-label')[2].textContent = lang.target;
+            document.querySelectorAll('.card-title')[2].textContent = lang.theorem;
+            document.getElementById('theoremText').textContent = lang.theoremText;
+            document.querySelectorAll('.card-title')[3].textContent = lang.hint;
+            document.getElementById('hintText').textContent = lang.hintText;
+            document.getElementById('checkBtn').textContent = lang.check;
+            document.getElementById('nextBtn').textContent = lang.next;
+            document.getElementById('restartBtn').textContent = lang.restart;
+            document.querySelector('.canvas-title').textContent = lang.canvasTitle;
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            initCanvas();
+        });
+    </script>
+</body>
+</html>

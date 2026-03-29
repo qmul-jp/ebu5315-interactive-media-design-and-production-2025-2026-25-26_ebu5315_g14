@@ -190,9 +190,24 @@ body {
 }
 
 .concept-item {
-    height: 25px;
-    border-bottom: 1px dashed #ccc;
-    margin-bottom: 15px;
+    background: #fbfbfb;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.concept-item h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.concept-item p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin: 0;
 }
 
 /* 视频占位 */

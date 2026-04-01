@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CircleLab - Game</title>
+    <link rel="stylesheet" href="game.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="Homepage/index.html" class="logo">CircleLab</a>
+        <ul class="nav-menu">
+            <li><a href="Homepage/index.html" class="nav-link">Homepage</a></li>
+            <li><a href="quiz.html" class="nav-link">Quiz</a></li>
+            <li><a href="game.html" class="nav-link active">Game</a></li>
+        </ul>
+        <div class="nav-right">
+            <button class="lang-btn" id="langToggle">涓枃</button>
+            <button class="theme-btn" id="themeToggle" title="鍒囨崲鏃ュ妯″紡"><i class="fas fa-moon"></i></button>
+        </div>
+    </nav>
+
+    <!-- Main Game Content -->
+    <div class="game-page">
+        <div class="breadcrumb">Game ></div>
+        <h1 class="page-title">Inscribed Angles Game</h1>
+
+        <div class="game-layout">
+            <!-- Left: Canvas Section -->
+            <div class="canvas-section">
+                <h3 class="canvas-title">Circle Canvas</h3>
+                <canvas id="gameCanvas" width="500" height="500"></canvas>
+                <div class="position-display">
+                    <strong>Point Position:</strong> <span id="positionInfo">X: 0, Y: 0 | Angle: 0掳</span>
+                </div>
+            </div>
+
+            <!-- Right: Info Panel -->
+            <div class="info-panel">
+                <!-- Objective Card -->
+                <div class="info-card">
+                    <h4 class="card-title">馃幆 Objective</h4>
+                    <div class="card-content">
+                        <p>Drag the blue point on the circle to form the same inscribed angle as shown. The inscribed angle is determined by the position of your point relative to points A and B.</p>
+                    </div>
+                </div>
+
+                <!-- Score & Level Card -->
+                <div class="info-card">
+                    <h4 class="card-title">馃搳 Progress</h4>
+                    <div class="stat-row">
+                        <span class="stat-label">Current Level:</span>
+                        <span class="stat-value" id="levelDisplay">1</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Score:</span>
+                        <span class="stat-value" id="scoreDisplay">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Target Angle:</span>
+                        <span class="stat-value" id="angleDisplay">鈥?/span>
+                    </div>
+                </div>
+
+                <!-- Theorem Card -->
+                <div class="info-card">
+                    <h4 class="card-title">鉁?Theorem</h4>
+                    <div class="theorem-text" id="theoremText">
+                        Inscribed angles subtended by the same arc are equal.
+                    </div>
+                </div>
+
+                <!-- Hint Card -->
+                <div class="info-card">
+                    <h4 class="card-title">馃挕 Hint</h4>
+                    <div class="hint-text" id="hintText">
+                        Look for points on the circle that form the same angle when looking at points A and B. The angle remains constant on the same arc.
+                    </div>
+                </div>
+
+                <!-- Feedback Box -->
+                <div class="feedback-box" id="feedbackBox"></div>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="button-group">
+            <button class="btn btn-primary" id="checkBtn" onclick="checkAnswer()">鉁?Check Answer</button>
+            <button class="btn btn-secondary" id="nextBtn" onclick="nextLevel()" style="display: none;">鈫?Next Level</button>
+            <button class="btn btn-secondary" id="restartBtn" onclick="restartGame()">鈫?Restart</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

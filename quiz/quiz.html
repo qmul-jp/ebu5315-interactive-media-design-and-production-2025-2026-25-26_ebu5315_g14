@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CircleLab - Quiz</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- 顶部导航栏 -->
+  <nav class="navbar">
+    <div class="logo-container">
+      <div class="logo-img">C</div>
+      <div class="logo-text">CircleLab</div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html" id="navHome">Homepage</a></li>
+      <li><a href="quiz.html" class="active" id="navQuiz">Quiz</a></li>
+      <li><a href="game.html" id="navGame">Game</a></li>
+    </ul>
+    <div class="controls">
+      <button class="lang-toggle" id="langToggle">EN/CN</button>
+      <button class="theme-toggle" id="themeToggle">🌙</button>
+    </div>
+  </nav>
+
+  <!-- 面包屑导航 -->
+  <div class="breadcrumb" id="breadcrumb">
+    <a href="index.html" class="breadcrumb-link" id="breadcrumbHome">homepage</a>
+    <span class="breadcrumb-separator">&gt;</span>
+    <span id="breadcrumbCurrent">quiz</span>
+  </div>
+
+  <!-- Quiz 主体内容 -->
+  <main class="quiz-container" id="quizContainer">
+    <div class="quiz-header">
+      <span id="question-number">Question 1/5</span>
+      <span id="score">Score: 0/5</span>
+    </div>
+    <h2 id="question-text">What is the radius of a circle with equation x² + y² = 25?</h2>
+    <div class="options-container" id="optionsContainer">
+      <!-- 选项由 JS 动态生成 -->
+    </div>
+    <div class="nav-buttons">
+      <button id="prevBtn">Previous</button>
+      <button id="nextBtn">Next</button>
+    </div>
+  </main>
+
+  <!-- 结果页面 -->
+  <div class="results-container" id="resultsContainer">
+    <div class="results-header">
+      <h2 id="results-title">Quiz Results</h2>
+    </div>
+    
+    <div class="results-summary">
+      <div class="score-circle" id="scoreCircle">
+        <div class="score-value" id="finalScoreValue">0</div>
+        <div class="score-total" id="finalScoreTotal">/5</div>
+      </div>
+      
+      <div class="score-message">
+        <h3 id="scoreMessage">Good effort!</h3>
+        <p id="scoreDescription">You've completed the quiz. Review your answers below.</p>
+      </div>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value" id="correctAnswers">0</div>
+        <div class="stat-label" id="correctLabel">Correct</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="incorrectAnswers">0</div>
+        <div class="stat-label" id="incorrectLabel">Incorrect</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="unansweredCount">0</div>
+        <div class="stat-label" id="unansweredLabel">Unanswered</div>
+      </div>
+    </div>
+    
+    <div class="questions-review" id="questionsReview">
+      <!-- 答题回顾由 JS 动态生成 -->
+    </div>
+    
+    <div class="action-buttons">
+      <button class="action-btn restart-btn" id="restartBtn">Restart Quiz</button>
+      <button class="action-btn review-btn" id="reviewBtn">Back to Questions</button>
+    </div>
+  </div>
+
+  <script src="quiz.js"></script>
+</body>
+</html>

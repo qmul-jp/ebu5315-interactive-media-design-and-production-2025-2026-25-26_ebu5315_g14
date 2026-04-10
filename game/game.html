@@ -10,46 +10,61 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <a href="Homepage/index.html" class="logo">CircleLab</a>
+        <a href="../HomePage/index.html" class="logo brand-logo" aria-label="CircleLab homepage">
+            <span class="brand-lockup" aria-hidden="true">
+                <span class="brand-mark"></span>
+                <span class="brand-text">CircleLab</span>
+            </span>
+        </a>
         <ul class="nav-menu">
-            <li><a href="Homepage/index.html" class="nav-link">Homepage</a></li>
-            <li><a href="quiz.html" class="nav-link">Quiz</a></li>
+            <li><a href="../HomePage/index.html" class="nav-link">Homepage</a></li>
+            <li><a href="../quiz.html" class="nav-link">Quiz</a></li>
             <li><a href="game.html" class="nav-link active">Game</a></li>
         </ul>
         <div class="nav-right">
-            <button class="lang-btn" id="langToggle">涓枃</button>
-            <button class="theme-btn" id="themeToggle" title="鍒囨崲鏃ュ妯″紡"><i class="fas fa-moon"></i></button>
+            <button class="lang-btn" id="langToggle">中文</button>
+            <button class="theme-btn" id="themeToggle" title="切换日夜模式"><i class="fas fa-moon"></i></button>
+            <button id="a11yToggleBtn" class="a11y-toggle-btn" type="button" aria-expanded="false">Accessibility</button>
+            <div id="a11yPanel" class="a11y-panel" aria-label="Accessibility controls">
+                <div class="a11y-controls">
+                    <button id="fontDownBtn" class="a11y-btn" type="button">A-</button>
+                    <button id="fontResetBtn" class="a11y-btn" type="button">A</button>
+                    <button id="fontUpBtn" class="a11y-btn" type="button">A+</button>
+                    <button id="colorSafeToggle" class="a11y-btn" type="button">Color Safe</button>
+                </div>
+            </div>
         </div>
     </nav>
 
+    <div class="breadcrumb"><a href="../HomePage/index.html">Homepage</a> &gt; <span>Game</span></div>
+
     <!-- Main Game Content -->
-    <div class="game-page">
-        <div class="breadcrumb">Game ></div>
+    <main class="game-page container">
         <h1 class="page-title">Inscribed Angles Game</h1>
 
         <div class="game-layout">
             <!-- Left: Canvas Section -->
-            <div class="canvas-section">
+            <div class="canvas-section card">
                 <h3 class="canvas-title">Circle Canvas</h3>
                 <canvas id="gameCanvas" width="500" height="500"></canvas>
                 <div class="position-display">
-                    <strong>Point Position:</strong> <span id="positionInfo">X: 0, Y: 0 | Angle: 0掳</span>
+                    <strong>Point Position:</strong> <span id="positionInfo">X: 0, Y: 0 | Angle: 0°</span>
                 </div>
             </div>
 
             <!-- Right: Info Panel -->
             <div class="info-panel">
                 <!-- Objective Card -->
-                <div class="info-card">
-                    <h4 class="card-title">馃幆 Objective</h4>
+                <div class="info-card card">
+                    <h4 class="card-title">Objective</h4>
                     <div class="card-content">
                         <p>Drag the blue point on the circle to form the same inscribed angle as shown. The inscribed angle is determined by the position of your point relative to points A and B.</p>
                     </div>
                 </div>
 
                 <!-- Score & Level Card -->
-                <div class="info-card">
-                    <h4 class="card-title">馃搳 Progress</h4>
+                <div class="info-card card">
+                    <h4 class="card-title">Progress</h4>
                     <div class="stat-row">
                         <span class="stat-label">Current Level:</span>
                         <span class="stat-value" id="levelDisplay">1</span>
@@ -60,21 +75,21 @@
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">Target Angle:</span>
-                        <span class="stat-value" id="angleDisplay">鈥?/span>
+                        <span class="stat-value" id="angleDisplay">--</span>
                     </div>
                 </div>
 
                 <!-- Theorem Card -->
-                <div class="info-card">
-                    <h4 class="card-title">鉁?Theorem</h4>
+                <div class="info-card card">
+                    <h4 class="card-title">Theorem</h4>
                     <div class="theorem-text" id="theoremText">
                         Inscribed angles subtended by the same arc are equal.
                     </div>
                 </div>
 
                 <!-- Hint Card -->
-                <div class="info-card">
-                    <h4 class="card-title">馃挕 Hint</h4>
+                <div class="info-card card">
+                    <h4 class="card-title">Hint</h4>
                     <div class="hint-text" id="hintText">
                         Look for points on the circle that form the same angle when looking at points A and B. The angle remains constant on the same arc.
                     </div>
@@ -87,11 +102,11 @@
 
         <!-- Control Buttons -->
         <div class="button-group">
-            <button class="btn btn-primary" id="checkBtn" onclick="checkAnswer()">鉁?Check Answer</button>
-            <button class="btn btn-secondary" id="nextBtn" onclick="nextLevel()" style="display: none;">鈫?Next Level</button>
-            <button class="btn btn-secondary" id="restartBtn" onclick="restartGame()">鈫?Restart</button>
+            <button class="btn btn-primary" id="checkBtn" onclick="checkAnswer()">Check Answer</button>
+            <button class="btn btn-secondary" id="nextBtn" onclick="nextLevel()" style="display: none;">Next Level</button>
+            <button class="btn btn-secondary" id="restartBtn" onclick="restartGame()">Restart</button>
         </div>
-    </div>
+    </main>
 
     <script src="game.js"></script>
 </body>

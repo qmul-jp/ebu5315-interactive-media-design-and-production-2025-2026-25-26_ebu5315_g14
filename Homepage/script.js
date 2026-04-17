@@ -241,6 +241,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const chatInput = document.getElementById('chatInput');
         if (chatInput) chatInput.placeholder = t.aiPlaceholder;
         document.getElementById('chatSendBtn').textContent = t.sendButton;
+        
+        // 更新清除按钮文本
+        const chatClearBtn = document.getElementById('chatClearBtn');
+        if (chatClearBtn) {
+            chatClearBtn.textContent = lang === 'en' ? '🗑 Clear' : '🗑 清除';
+            chatClearBtn.title = lang === 'en' ? 'Clear chat history' : '清除对话记录';
+        }
+        
         document.querySelector('.ad-card h3').textContent = t.adTitle;
         document.querySelector('#usp-title').textContent = t.uspTitle;
         document.getElementById('prevTheorem').textContent = t.prevButton;
@@ -347,9 +355,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const target = card.dataset.target;
             card.addEventListener('click', () => {
                 if (target === 'quiz') {
-                    window.location.href = '../quiz.html';
+                    window.location.href = '../Quiz/quiz.html';
                 } else if (target === 'game') {
-                    window.location.href = '../game.html';
+                    window.location.href = '../Game/game.html';
                 }
             });
             card.addEventListener('keypress', event => {
@@ -366,39 +374,112 @@ document.addEventListener('DOMContentLoaded', function() {
         const chatSendBtn = document.getElementById('chatSendBtn');
         if (!chatInput || !chatSendBtn) return;
 
+        // 创建清除对话按钮
+        createChatClearButton();
+
         const sendMessage = () => {
             const message = chatInput.value.trim();
             if (!message) return;
+            
             appendChatMessage('user', message);
             chatInput.value = '';
             chatInput.focus();
+            chatSendBtn.disabled = true;
 
+            // 显示typing指示器
+            showTypingIndicator();
+
+            // 延迟回复，更自然
             setTimeout(() => {
+                removeTypingIndicator();
                 const response = getChatbotResponse(message);
                 appendChatMessage('bot', response);
-            }, 250);
+                chatSendBtn.disabled = false;
+            }, 600 + Math.random() * 400);
         };
 
         chatSendBtn.addEventListener('click', sendMessage);
         chatInput.addEventListener('keypress', event => {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
-                sendMessage();
+                if (!chatSendBtn.disabled) sendMessage();
             }
         });
 
         appendChatMessage('bot', translations[currentLang].chatWelcome);
     }
 
+    function createChatClearButton() {
+        if (document.getElementById('chatClearBtn')) return;
+        const aiCard = document.querySelector('.ai-card');
+        if (!aiCard) return;
+        
+        const clearBtn = document.createElement('button');
+        clearBtn.id = 'chatClearBtn';
+        clearBtn.className = 'chat-clear-btn';
+        clearBtn.textContent = currentLang === 'en' ? '🗑 Clear' : '🗑 清除';
+        clearBtn.type = 'button';
+        clearBtn.title = currentLang === 'en' ? 'Clear chat history' : '清除对话记录';
+        clearBtn.addEventListener('click', clearChatHistory);
+        
+        const chatInputRow = aiCard.querySelector('.chat-input-row');
+        if (chatInputRow) {
+            chatInputRow.appendChild(clearBtn);
+        }
+    }
+
+    function clearChatHistory() {
+        const history = document.getElementById('chatHistory');
+        if (history) {
+            history.innerHTML = '';
+            appendChatMessage('bot', translations[currentLang].chatWelcome);
+        }
+    }
+
+    function showTypingIndicator() {
+        const history = document.getElementById('chatHistory');
+        if (!history) return;
+        
+        const typingDiv = document.createElement('div');
+        typingDiv.id = 'chatTypingIndicator';
+        typingDiv.className = 'chat-message bot';
+        typingDiv.innerHTML = `
+            <div class="message-bubble typing-bubble">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </div>
+        `;
+        history.appendChild(typingDiv);
+        history.scrollTop = history.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+        const typing = document.getElementById('chatTypingIndicator');
+        if (typing) typing.remove();
+    }
+
     function appendChatMessage(sender, text) {
         const history = document.getElementById('chatHistory');
         if (!history) return;
+        
         const message = document.createElement('div');
         message.className = `chat-message ${sender}`;
+        
         const bubble = document.createElement('div');
         bubble.className = 'message-bubble';
         bubble.textContent = text;
+        
+        const timestamp = document.createElement('div');
+        timestamp.className = 'message-time';
+        const now = new Date();
+        timestamp.textContent = now.toLocaleTimeString(currentLang === 'en' ? 'en-US' : 'zh-CN', { 
+            hour: '2-digit', 
+            minute: '2-digit'
+        });
+        
         message.appendChild(bubble);
+        message.appendChild(timestamp);
         history.appendChild(message);
         history.scrollTop = history.scrollHeight;
     }
@@ -406,34 +487,64 @@ document.addEventListener('DOMContentLoaded', function() {
     function getChatbotResponse(text) {
         const lower = text.toLowerCase();
         const t = translations[currentLang];
-        const patterns = {
+        
+        // 问候和闲聊
+        const greetingPatterns = {
             en: [
-                { regex: /central|center|中心/, answer: 'The central angle equals the measure of its intercepted arc. It is drawn from the circle center to two points on the circle.' },
-                { regex: /inscribed|circumference|圆周|圆周角/, answer: 'An inscribed angle measures half of its intercepted arc, because the arc is subtended by the same chord from the circle center.' },
-                { regex: /tangent|secant|切线|割线/, answer: 'The tangent-secant angle is half the difference of the arcs intercepted by the secant and tangent lines.' },
-                { regex: /chord|arc|弦|弧/, answer: 'Equal chords subtend equal arcs and are equidistant from the center of the circle.' },
-                { regex: /cyclic|quadrilateral|内接|四边形/, answer: 'Opposite angles of a cyclic quadrilateral sum to 180° because they subtend supplementary arcs.' },
-                { regex: /semicircle|diameter|半圆|直径/, answer: 'An angle in a semicircle is a right angle, because it subtends a diameter.' },
-                { regex: /radius|tangent point|perpendicular|垂直/, answer: 'The radius drawn to the tangent point is perpendicular to the tangent line.' },
-                { regex: /alternate|segment|交替/, answer: 'In the alternate segment theorem, the angle between a tangent and a chord equals the angle in the opposite segment.' }
+                { regex: /^(hi|hello|hey|greetings)$/i, answer: 'Hello! 👋 How can I help you with circle geometry today?' },
+                { regex: /thanks|thank you|appreciate/i, answer: 'You\'re welcome! 😊 Feel free to ask more questions about circle theorems.' },
+                { regex: /how are you|how\'s it/i, answer: 'I\'m here and ready to help! 🎓 What would you like to learn about circles?' },
+                { regex: /help|what can you do/i, answer: 'I can explain circle theorems like central angles, inscribed angles, tangent-secant angles, chord properties, cyclic quadrilaterals, angles in semicircles, radius to tangent, and alternate segment theorem. Just ask!' }
             ],
             cn: [
-                { regex: /中心角|中心/, answer: '中心角的度数等于它所截弧的度数。它由圆心连接圆上的两点形成。' },
-                { regex: /圆周角|圆周/, answer: '圆周角的度数等于它所截弧度数的一半，因为它所对的弧在圆心处对应的角是两倍。' },
-                { regex: /切线|割线/, answer: '切线与割线所夹的角等于它们所截弧差的一半。' },
-                { regex: /弦|弧/, answer: '相等的弦所对的弧相等，并且到圆心的距离也相等。' },
-                { regex: /圆内接四边形|内接四边形|四边形/, answer: '圆内接四边形的对角和为180°，因为它们分别对着互补的弧。' },
-                { regex: /半圆|直径/, answer: '半圆内的圆周角为直角，因为它所对的弧是直径。' },
-                { regex: /半径|切点|垂直/, answer: '到切点的半径与切线垂直。' },
-                { regex: /交替|弓形/, answer: '交替弓形定理说明切线与弦之间的角等于对面弧中对应的圆周角。' }
+                { regex: /^(你好|嗨|你好吗|哈喽)$/i, answer: '你好！👋 有什么关于圆几何的问题吗？' },
+                { regex: /谢谢|感谢|多谢/i, answer: '不客气！😊 欢迎继续提问圆几何问题。' },
+                { regex: /你好吗|怎么样/i, answer: '我已准备好帮助你！🎓 想学什么关于圆的知识吗？' },
+                { regex: /帮助|你能做什么/i, answer: '我可以解释圆几何定理，如中心角、圆周角、切线-割线角、弦的性质、圆内接四边形、半圆内角、半径与切线、交替弓形定理。尽管问吧！' }
             ]
         };
 
-        for (const item of patterns[currentLang]) {
-            if (item.regex.test(text)) {
+        // 主要定理模式
+        const theoremPatterns = {
+            en: [
+                { regex: /central|center|中心/, answer: 'The central angle equals the measure of its intercepted arc. It is drawn from the circle center to two points on the circle. 📐' },
+                { regex: /inscribed|circumference|圆周|圆周角/, answer: 'An inscribed angle measures half of its intercepted arc, because the arc is subtended by the same chord from the circle center. 🎯' },
+                { regex: /tangent|secant|切线|割线/, answer: 'The tangent-secant angle is half the difference of the arcs intercepted by the secant and tangent lines. ✨' },
+                { regex: /chord|arc|弦|弧/, answer: 'Equal chords subtend equal arcs and are equidistant from the center of the circle. 🔄' },
+                { regex: /cyclic|quadrilateral|内接|四边形/, answer: 'Opposite angles of a cyclic quadrilateral sum to 180° because they subtend supplementary arcs. 📊' },
+                { regex: /semicircle|diameter|half|90|right angle|半圆|直径/, answer: 'An angle in a semicircle is a right angle (90°), because it subtends a diameter. 📏' },
+                { regex: /radius|tangent point|perpendicular|垂直/, answer: 'The radius drawn to the tangent point is perpendicular to the tangent line. This is a key property! 🎪' },
+                { regex: /alternate|segment|交替|弓形/, answer: 'In the alternate segment theorem, the angle between a tangent and a chord equals the angle in the opposite segment. 🔑' }
+            ],
+            cn: [
+                { regex: /中心角|中心/, answer: '中心角的度数等于它所截弧的度数。它由圆心连接圆上的两点形成。 📐' },
+                { regex: /圆周角|圆周/, answer: '圆周角的度数等于它所截弧度数的一半，因为它所对的弧在圆心处对应的角是两倍。 🎯' },
+                { regex: /切线|割线/, answer: '切线与割线所夹的角等于它们所截弧差的一半。 ✨' },
+                { regex: /弦|弧/, answer: '相等的弦所对的弧相等，并且到圆心的距离也相等。 🔄' },
+                { regex: /圆内接四边形|内接四边形|四边形/, answer: '圆内接四边形的对角和为180°，因为它们分别对着互补的弧。 📊' },
+                { regex: /半圆|直径|直角|90/, answer: '半圆内的圆周角为直角（90°），因为它所对的弧是直径。 📏' },
+                { regex: /半径|切点|垂直/, answer: '到切点的半径与切线垂直。这是一个重要的性质！ 🎪' },
+                { regex: /交替|弓形/, answer: '交替弓形定理说明切线与弦之间的角等于对面弧中对应的圆周角。 🔑' }
+            ]
+        };
+
+        // 先检查问候模式
+        const langGreetings = greetingPatterns[currentLang] || greetingPatterns.en;
+        for (const item of langGreetings) {
+            if (item.regex.test(lower)) {
                 return item.answer;
             }
         }
+
+        // 然后检查定理模式
+        const langTheorems = theoremPatterns[currentLang] || theoremPatterns.en;
+        for (const item of langTheorems) {
+            if (item.regex.test(lower)) {
+                return item.answer;
+            }
+        }
+
+        // 默认回复
         return t.chatFallback;
     }
 

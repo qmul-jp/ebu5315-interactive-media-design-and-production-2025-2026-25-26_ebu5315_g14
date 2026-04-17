@@ -46,10 +46,11 @@ const THEOREM_DEFINITIONS = {
 const gameState = {
   currentLevel: 1,
   score: 0,
+  coins: loadCoins(),
+  totalCoins: loadTotalCoins(),
+  unlockedItems: loadUnlockedItems(),
   canvas: document.getElementById('gameCanvas'),
   ctx: null,
-  canvasSize: 500,
-  dpr: window.devicePixelRatio || 1,
   draggingPoint: false,
   pointX: 0,
   pointY: 0,
@@ -73,107 +74,234 @@ const gameState = {
   currentTheoremType: 'inscribed',
   difficulty: 'Easy'
 };
+// =====================
+// COIN/UNLOCK/LEADERBOARD SYSTEMS
+// =====================
 
-const navbar = document.querySelector('.navbar');
+const UNLOCKABLES = [
+  { key: 'blue-neon', name: 'Blue Neon Theme', cost: 50 },
+  { key: 'gold', name: 'Gold Theme', cost: 120 },
+  { key: 'galaxy', name: 'Galaxy Theme', cost: 250 }
+];
 
-function syncNavbarOffset() {
-  if (!navbar) return;
-  const height = Math.ceil(navbar.getBoundingClientRect().height);
-  document.body.style.setProperty('--nav-offset', `${height + 8}px`);
+function loadCoins() {
+  return parseInt(localStorage.getItem('coins') || '0', 10);
+}
+function loadTotalCoins() {
+  return parseInt(localStorage.getItem('totalCoins') || '0', 10);
+}
+function saveCoins() {
+  localStorage.setItem('coins', gameState.coins);
+}
+function saveTotalCoins() {
+  localStorage.setItem('totalCoins', gameState.totalCoins);
+}
+function addCoins(amount, animate = true) {
+  gameState.coins += amount;
+  gameState.totalCoins += amount;
+  saveCoins();
+  saveTotalCoins();
+  updateCoinDisplay();
+  if (animate) showCoinAnimation(amount);
 }
 
-const scheduleNavbarOffsetSync = () => {
-  requestAnimationFrame(syncNavbarOffset);
-};
+function loadUnlockedItems() {
+  try {
+    return JSON.parse(localStorage.getItem('unlockedItems') || '[]');
+  } catch (e) { return []; }
+}
+function saveUnlockedItems() {
+  localStorage.setItem('unlockedItems', JSON.stringify(gameState.unlockedItems));
+}
+function checkUnlocks() {
+  let unlocked = false;
+  for (const item of UNLOCKABLES) {
+    if (!gameState.unlockedItems.includes(item.key) && gameState.totalCoins >= item.cost) {
+      gameState.unlockedItems.push(item.key);
+      saveUnlockedItems();
+      showUnlockMessage(item.name);
+      unlocked = true;
+    }
+  }
+  return unlocked;
+}
 
-window.addEventListener('resize', scheduleNavbarOffsetSync);
-window.addEventListener('orientationchange', scheduleNavbarOffsetSync);
+function showUnlockMessage(name) {
+  const feedback = document.getElementById('feedbackBox');
+  const prev = feedback.textContent;
+  feedback.textContent = `🎉 New Reward Unlocked! (${name})`;
+  feedback.className = 'feedback-box show correct';
+  setTimeout(() => {
+    feedback.textContent = prev;
+    if (!prev) feedback.className = 'feedback-box';
+  }, 2000);
+}
+
+function showCoinAnimation(amount) {
+  if (!amount) return;
+  let panel = document.getElementById('coinAnimPanel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'coinAnimPanel';
+    panel.style.position = 'fixed';
+    panel.style.left = '50%';
+    panel.style.top = '60px';
+    panel.style.transform = 'translateX(-50%)';
+    panel.style.zIndex = '2000';
+    panel.style.pointerEvents = 'none';
+    document.body.appendChild(panel);
+  }
+  const anim = document.createElement('div');
+  anim.textContent = (amount > 0 ? '+' : '') + amount + ' coins';
+  anim.style.fontSize = '1.2rem';
+  anim.style.fontWeight = 'bold';
+  anim.style.color = '#f39c12';
+  anim.style.background = 'rgba(255,255,255,0.95)';
+  anim.style.borderRadius = '8px';
+  anim.style.padding = '4px 14px';
+  anim.style.margin = '4px auto';
+  anim.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+  anim.style.opacity = '1';
+  anim.style.transition = 'all 1s cubic-bezier(.4,2,.6,1)';
+  panel.appendChild(anim);
+  setTimeout(() => {
+    anim.style.transform = 'translateY(-40px) scale(1.2)';
+    anim.style.opacity = '0';
+  }, 10);
+  setTimeout(() => {
+    anim.remove();
+  }, 1100);
+}
+
+function updateCoinDisplay() {
+  let coinRow = document.getElementById('coinRow');
+  const progressCard = document.querySelectorAll('.info-card')[1];
+  if (!progressCard) return;
+  if (!coinRow) {
+    coinRow = document.createElement('div');
+    coinRow.className = 'stat-row';
+    coinRow.id = 'coinRow';
+    coinRow.innerHTML = '<span class="stat-label">Coins:</span><span class="stat-value" id="coinDisplay">--</span>';
+    progressCard.appendChild(coinRow);
+  }
+  const coinDisplay = document.getElementById('coinDisplay');
+  if (coinDisplay) coinDisplay.textContent = gameState.coins;
+}
+
+// ========== LEADERBOARD ==========
+let leaderboardVisible = false;
+
+function loadLeaderboard() {
+  try {
+    return JSON.parse(localStorage.getItem('leaderboard') || '[]');
+  } catch (e) { return []; }
+}
+function saveLeaderboard(arr) {
+  localStorage.setItem('leaderboard', JSON.stringify(arr));
+}
+function addToLeaderboard(score, coins) {
+  let arr = loadLeaderboard();
+  arr.push({ score, coins, date: Date.now() });
+  arr.sort((a, b) => b.score - a.score || b.coins - a.coins);
+  arr = arr.slice(0, 10);
+  saveLeaderboard(arr);
+}
+
+function toggleLeaderboardVisibility() {
+  leaderboardVisible = !leaderboardVisible;
+  const panel = document.getElementById('leaderboardPanel');
+  if (panel) {
+    panel.style.display = leaderboardVisible ? 'block' : 'none';
+  }
+  const btn = document.getElementById('leaderboardToggleBtn');
+  if (btn) {
+    btn.textContent = leaderboardVisible ? '📋 隐藏排行榜' : '📋 显示排行榜';
+    btn.style.background = leaderboardVisible ? '#27ae60' : '#f5f5f5';
+    btn.style.color = leaderboardVisible ? '#fff' : '#333';
+  }
+}
+
+function renderLeaderboard() {
+  let panel = document.getElementById('leaderboardPanel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'leaderboardPanel';
+    panel.style.position = 'fixed';
+    panel.style.left = '16px';
+    panel.style.top = '16px';
+    panel.style.background = 'rgba(255,255,255,0.98)';
+    panel.style.border = '1px solid #eee';
+    panel.style.borderRadius = '10px';
+    panel.style.boxShadow = '0 2px 12px rgba(0,0,0,0.12)';
+    panel.style.zIndex = '1500';
+    panel.style.width = '280px';
+    panel.style.maxHeight = '70vh';
+    panel.style.overflow = 'auto';
+    panel.style.fontFamily = 'Arial, sans-serif';
+    panel.style.fontSize = '1rem';
+    panel.style.pointerEvents = 'auto';
+    panel.style.display = 'none';
+    document.body.appendChild(panel);
+  }
+  const arr = loadLeaderboard();
+  let html = '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #eee;">';
+  html += '<span style="font-weight:bold;font-size:1.1rem;">🏆 Leaderboard</span>';
+  html += '<button id="leaderboardCloseBtn" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#999;">✕</button>';
+  html += '</div>';
+  
+  if (!arr.length) {
+    html += '<div style="padding:16px;text-align:center;color:#999;">No scores yet.</div>';
+  } else {
+    html += '<ol style="margin:0;padding:12px 16px;list-style-position:inside;">';
+    for (let i = 0; i < arr.length; ++i) {
+      const entry = arr[i];
+      html += `<li style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #f0f0f0;font-size:0.95rem;">Score: <b>${entry.score}</b> | Coins: <b>${entry.coins}</b></li>`;
+    }
+    html += '</ol>';
+  }
+  panel.innerHTML = html;
+  
+  // Add close button listener
+  const closeBtn = document.getElementById('leaderboardCloseBtn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', toggleLeaderboardVisibility);
+  }
+}
+
+function createLeaderboardToggleButton() {
+  if (document.getElementById('leaderboardToggleBtn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'leaderboardToggleBtn';
+  btn.textContent = '📋 显示排行榜';
+  btn.style.position = 'fixed';
+  btn.style.left = '16px';
+  btn.style.bottom = '24px';
+  btn.style.zIndex = '1000';
+  btn.style.padding = '8px 14px';
+  btn.style.background = '#f5f5f5';
+  btn.style.border = '1px solid rgba(0,0,0,0.15)';
+  btn.style.borderRadius = '8px';
+  btn.style.fontSize = '0.9rem';
+  btn.style.fontFamily = 'Arial, sans-serif';
+  btn.style.cursor = 'pointer';
+  btn.style.color = '#333';
+  btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+  btn.style.transition = 'all 0.3s ease';
+  btn.addEventListener('click', toggleLeaderboardVisibility);
+  document.body.appendChild(btn);
+}
+
+// ========== END SYSTEMS ==========
 
 function initCanvas() {
   gameState.ctx = gameState.canvas.getContext('2d');
-  resizeCanvas(false);
+  gameState.centerX = gameState.canvas.width / 2;
+  gameState.centerY = gameState.canvas.height / 2;
   createTimerDisplay();
   createDifficultyControl();
   generateNewLevel();
   setupCanvasEvents();
-  window.addEventListener('resize', () => {
-    resizeCanvas(true);
-    draw();
-  });
   draw();
-}
-
-function resizeCanvas(preservePoints = true) {
-  if (!gameState.canvas || !gameState.ctx) return;
-
-  const oldCenterX = gameState.centerX;
-  const oldCenterY = gameState.centerY;
-  const oldRadius = gameState.radius;
-  const toAngle = point => {
-    if (!point || !oldRadius) return null;
-    return Math.atan2(point.y - oldCenterY, point.x - oldCenterX);
-  };
-
-  const angles = preservePoints ? {
-    a: toAngle(gameState.pointA),
-    b: toAngle(gameState.pointB),
-    x: toAngle({ x: gameState.pointX, y: gameState.pointY }),
-    c: toAngle(gameState.pointC),
-    d: toAngle(gameState.pointD)
-  } : null;
-
-  const rect = gameState.canvas.getBoundingClientRect();
-  const cssSize = Math.max(280, Math.round(rect.width || 500));
-  gameState.dpr = window.devicePixelRatio || 1;
-  gameState.canvasSize = cssSize;
-
-  gameState.canvas.width = Math.round(cssSize * gameState.dpr);
-  gameState.canvas.height = Math.round(cssSize * gameState.dpr);
-  gameState.ctx.setTransform(gameState.dpr, 0, 0, gameState.dpr, 0, 0);
-  gameState.ctx.imageSmoothingEnabled = true;
-
-  gameState.centerX = cssSize / 2;
-  gameState.centerY = cssSize / 2;
-  gameState.radius = Math.max(100, cssSize * 0.3);
-
-  if (angles) {
-    if (angles.a !== null) {
-      gameState.pointA = {
-        ...gameState.pointA,
-        x: gameState.centerX + gameState.radius * Math.cos(angles.a),
-        y: gameState.centerY + gameState.radius * Math.sin(angles.a),
-        angle: angles.a
-      };
-    }
-    if (angles.b !== null) {
-      gameState.pointB = {
-        ...gameState.pointB,
-        x: gameState.centerX + gameState.radius * Math.cos(angles.b),
-        y: gameState.centerY + gameState.radius * Math.sin(angles.b),
-        angle: angles.b
-      };
-    }
-    if (angles.x !== null) {
-      gameState.pointX = gameState.centerX + gameState.radius * Math.cos(angles.x);
-      gameState.pointY = gameState.centerY + gameState.radius * Math.sin(angles.x);
-    }
-    if (angles.c !== null && gameState.pointC) {
-      gameState.pointC = {
-        ...gameState.pointC,
-        x: gameState.centerX + gameState.radius * Math.cos(angles.c),
-        y: gameState.centerY + gameState.radius * Math.sin(angles.c),
-        angle: angles.c
-      };
-    }
-    if (angles.d !== null && gameState.pointD) {
-      gameState.pointD = {
-        ...gameState.pointD,
-        x: gameState.centerX + gameState.radius * Math.cos(angles.d),
-        y: gameState.centerY + gameState.radius * Math.sin(angles.d),
-        angle: angles.d
-      };
-    }
-  }
 }
 
 function generateNewLevel() {
@@ -254,8 +382,8 @@ function generateNewLevel() {
 function getCanvasCoordinates(clientX, clientY) {
   const rect = gameState.canvas.getBoundingClientRect();
   return {
-    x: clientX - rect.left,
-    y: clientY - rect.top
+    x: (clientX - rect.left) * (gameState.canvas.width / rect.width),
+    y: (clientY - rect.top) * (gameState.canvas.height / rect.height)
   };
 }
 
@@ -316,7 +444,7 @@ function createTimerDisplay() {
   const timerRow = document.createElement('div');
   timerRow.className = 'stat-row';
   timerRow.style.marginTop = '8px';
-  timerRow.innerHTML = '<span class="stat-label" id="timerLabel">Time Remaining:</span><span class="stat-value" id="timerDisplay">--</span>';
+  timerRow.innerHTML = '<span class="stat-label">Time Remaining:</span><span class="stat-value" id="timerDisplay">--</span>';
   progressCard.appendChild(timerRow);
 }
 
@@ -331,13 +459,34 @@ function createDifficultyControl() {
   if (document.getElementById('difficultyControl')) return;
   const control = document.createElement('div');
   control.id = 'difficultyControl';
+  control.style.position = 'fixed';
+  control.style.top = '100px';
+  control.style.right = '16px';
+  control.style.zIndex = '1000';
+  control.style.display = 'flex';
+  control.style.alignItems = 'center';
+  control.style.gap = '8px';
+  control.style.padding = '6px 10px';
+  control.style.background = 'rgba(255,255,255,0.9)';
+  control.style.border = '1px solid rgba(0,0,0,0.12)';
+  control.style.borderRadius = '8px';
+  control.style.fontSize = '0.9rem';
+  control.style.fontFamily = 'Arial, sans-serif';
+  control.style.color = '#333';
+  control.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+  control.style.pointerEvents = 'auto';
 
   const label = document.createElement('span');
-  label.id = 'difficultyLabel';
   label.textContent = 'Difficulty:';
   const button = document.createElement('button');
   button.type = 'button';
   button.textContent = gameState.difficulty || 'Easy';
+  button.style.cursor = 'pointer';
+  button.style.padding = '4px 10px';
+  button.style.border = '1px solid rgba(0,0,0,0.15)';
+  button.style.borderRadius = '6px';
+  button.style.background = '#f5f5f5';
+  button.style.color = '#333';
   button.addEventListener('click', () => cycleDifficulty());
   document.addEventListener('keydown', event => {
     if (event.code === 'KeyD' && !event.repeat) {
@@ -452,24 +601,14 @@ function drawFeedbackOverlay() {
 function draw() {
   const ctx = gameState.ctx;
   const { centerX, centerY, radius, pointX, pointY, pointA, pointB, pointC, pointD, currentTheoremType } = gameState;
-  if (!ctx || !pointA || !pointB) return;
-  const isDarkMode = document.body.classList.contains('dark-mode');
-  const colorSafe = document.body.classList.contains('color-safe');
-  const circleStroke = isDarkMode ? '#94a3b8' : '#334155';
-  const chordStroke = isDarkMode ? '#64748b' : '#94a3b8';
-  const lineAccent = colorSafe ? '#0f766e' : '#27ae60';
-  const pointAColor = colorSafe ? '#ea580c' : '#e74c3c';
-  const pointBColor = colorSafe ? '#ea580c' : '#e74c3c';
-  const pointXColor = colorSafe ? '#0b5ed7' : '#3498db';
-
-  ctx.fillStyle = isDarkMode ? '#0f172a' : '#ffffff';
-  ctx.fillRect(0, 0, gameState.canvasSize, gameState.canvasSize);
-  ctx.strokeStyle = circleStroke;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+  ctx.strokeStyle = '#333';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.strokeStyle = chordStroke;
+  ctx.strokeStyle = '#999';
   ctx.lineWidth = 1.5;
   ctx.setLineDash([5, 5]);
   ctx.beginPath();
@@ -479,7 +618,7 @@ function draw() {
   ctx.setLineDash([]);
 
   if (currentTheoremType === 'central') {
-    ctx.strokeStyle = isDarkMode ? '#93c5fd' : '#2c3e50';
+    ctx.strokeStyle = '#2c3e50';
     ctx.lineWidth = 1.2;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
@@ -494,21 +633,21 @@ function draw() {
   }
 
   if (currentTheoremType === 'equalChord' && pointC && pointD) {
-    ctx.strokeStyle = colorSafe ? '#1d4ed8' : '#8e44ad';
+    ctx.strokeStyle = '#8e44ad';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(pointC.x, pointC.y);
     ctx.lineTo(pointD.x, pointD.y);
     ctx.stroke();
-    drawPoint(pointC.x, pointC.y, colorSafe ? '#1d4ed8' : '#8e44ad', 'C', 10);
-    drawPoint(pointD.x, pointD.y, colorSafe ? '#1d4ed8' : '#8e44ad', 'D', 10);
+    drawPoint(pointC.x, pointC.y, '#8e44ad', 'C', 10);
+    drawPoint(pointD.x, pointD.y, '#8e44ad', 'D', 10);
   }
 
-  drawPoint(pointA.x, pointA.y, pointAColor, 'A', 12);
-  drawPoint(pointB.x, pointB.y, pointBColor, 'B', 12);
-  drawPoint(pointX, pointY, pointXColor, '', 10);
+  drawPoint(pointA.x, pointA.y, '#e74c3c', 'A', 12);
+  drawPoint(pointB.x, pointB.y, '#e74c3c', 'B', 12);
+  drawPoint(pointX, pointY, '#3498db', '', 10);
   if (Math.hypot(pointX - centerX, pointY - centerY) > radius - 10) {
-    ctx.strokeStyle = lineAccent;
+    ctx.strokeStyle = '#27ae60';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(pointX, pointY);
@@ -528,13 +667,12 @@ function draw() {
 
 function drawPoint(x, y, color, label, radius) {
   const ctx = gameState.ctx;
-  const isDarkMode = document.body.classList.contains('dark-mode');
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
   ctx.fill();
   if (label) {
-    ctx.fillStyle = isDarkMode ? '#e2e8f0' : '#333';
+    ctx.fillStyle = '#333';
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -615,11 +753,20 @@ function checkAnswer() {
   const angleDiff = Math.abs(gameState.selectedAngle - gameState.targetAngle);
   const isCorrect = angleDiff < gameState.tolerance * Math.PI / 180;
   const feedback = document.getElementById('feedbackBox');
+  let coinReward = 0;
   if (isCorrect) {
     gameState.levelActive = false;
     gameState.dragDisabled = true;
     clearTimer();
     gameState.score++;
+    // Coin logic
+    coinReward = 10;
+    // Fast answer bonus (optional):
+    if (gameState.timeRemaining > Math.max(3, gameState.timeLimit * 0.5)) {
+      coinReward += 5;
+    }
+    addCoins(coinReward);
+    checkUnlocks();
     feedback.textContent = '✓ Correct! Great job!';
     feedback.className = 'feedback-box show correct';
     document.getElementById('checkBtn').style.display = 'none';
@@ -627,6 +774,9 @@ function checkAnswer() {
     document.getElementById('scoreDisplay').textContent = gameState.score;
     startFeedbackAnimation(true);
   } else {
+    coinReward = 2;
+    addCoins(coinReward);
+    checkUnlocks();
     feedback.textContent = `✗ Not quite. Try again! (Difference: ${(angleDiff * 180 / Math.PI).toFixed(1)}°)`;
     feedback.className = 'feedback-box show wrong';
     startFeedbackAnimation(false);
@@ -641,6 +791,9 @@ function nextLevel() {
 }
 
 function restartGame() {
+  // Save to leaderboard before reset
+  addToLeaderboard(gameState.score, gameState.coins);
+  renderLeaderboard();
   gameState.currentLevel = 1;
   gameState.score = 0;
   gameState.difficulty = 'Easy';
@@ -648,6 +801,8 @@ function restartGame() {
   applyDifficultySettings();
   document.getElementById('levelDisplay').textContent = '1';
   document.getElementById('scoreDisplay').textContent = '0';
+  // Optionally reset coins for new run (comment out if coins are persistent)
+  // gameState.coins = 0; saveCoins(); updateCoinDisplay();
   generateNewLevel();
   draw();
 }
@@ -658,64 +813,6 @@ function hideFeedback() {
   feedback.textContent = '';
 }
 
-function applyFontScale(scale) {
-  document.body.classList.remove('font-small', 'font-normal', 'font-large');
-  document.body.classList.add(`font-${scale}`);
-  localStorage.setItem('fontScale', scale);
-}
-
-function setupAccessibilityControls() {
-  const a11yToggleBtn = document.getElementById('a11yToggleBtn');
-  const a11yPanel = document.getElementById('a11yPanel');
-  const fontDownBtn = document.getElementById('fontDownBtn');
-  const fontResetBtn = document.getElementById('fontResetBtn');
-  const fontUpBtn = document.getElementById('fontUpBtn');
-  const colorSafeToggle = document.getElementById('colorSafeToggle');
-
-  if (!a11yToggleBtn || !a11yPanel || !fontDownBtn || !fontResetBtn || !fontUpBtn || !colorSafeToggle) return;
-
-  const setPanelOpen = open => {
-    a11yPanel.classList.toggle('open', open);
-    a11yToggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  };
-
-  a11yToggleBtn.addEventListener('click', event => {
-    event.stopPropagation();
-    setPanelOpen(!a11yPanel.classList.contains('open'));
-  });
-
-  a11yPanel.addEventListener('click', event => {
-    event.stopPropagation();
-  });
-
-  document.addEventListener('click', () => {
-    setPanelOpen(false);
-  });
-
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') {
-      setPanelOpen(false);
-    }
-  });
-
-  fontDownBtn.addEventListener('click', () => applyFontScale('small'));
-  fontResetBtn.addEventListener('click', () => applyFontScale('normal'));
-  fontUpBtn.addEventListener('click', () => applyFontScale('large'));
-
-  colorSafeToggle.addEventListener('click', () => {
-    const enabled = !document.body.classList.contains('color-safe');
-    document.body.classList.toggle('color-safe', enabled);
-    localStorage.setItem('colorSafeMode', enabled ? 'true' : 'false');
-    draw();
-  });
-
-  const storedScale = localStorage.getItem('fontScale') || 'normal';
-  applyFontScale(storedScale);
-  const storedColorSafe = localStorage.getItem('colorSafeMode') === 'true';
-  document.body.classList.toggle('color-safe', storedColorSafe);
-  setPanelOpen(false);
-}
-
 const themeToggle = document.getElementById('themeToggle');
 const isDarkMode = localStorage.getItem('darkMode') === 'true';
 if (isDarkMode) {
@@ -723,7 +820,7 @@ if (isDarkMode) {
   const icon = themeToggle.querySelector('i');
   icon.classList.remove('fa-moon');
   icon.classList.add('fa-sun');
-  themeToggle.title = 'Switch to light mode';
+  themeToggle.title = '切换到日间模式';
 }
 
 themeToggle.addEventListener('click', () => {
@@ -733,68 +830,51 @@ themeToggle.addEventListener('click', () => {
   const icon = themeToggle.querySelector('i');
   icon.classList.toggle('fa-sun', newMode);
   icon.classList.toggle('fa-moon', !newMode);
-  const lang = translations[gameState.currentLanguage] || translations.en;
-  themeToggle.title = newMode ? lang.themeLight : lang.themeDark;
-  draw();
+  themeToggle.title = newMode ? '切换到日间模式' : '切换到夜间模式';
+  
+  // Update color safe button style on theme change
+  const colorSafeToggle = document.getElementById('colorSafeToggle');
+  if (colorSafeToggle) {
+    const isColorSafe = document.body.classList.contains('color-safe');
+    updateColorSafeButtonStyle(colorSafeToggle, isColorSafe, newMode);
+  }
 });
 
 const langToggle = document.getElementById('langToggle');
 const translations = {
   en: {
-    navHomepage: 'Homepage',
-    navQuiz: 'Quiz',
-    navGame: 'Game',
-    breadcrumbGame: 'Game',
-    pageTitle: 'Inscribed Angles Game',
-    objective: 'Objective',
+    objective: '🎯 Objective',
     objectiveText: 'Drag the blue point on the circle to form the same inscribed angle as shown. The inscribed angle is determined by the position of your point relative to points A and B.',
-    progress: 'Progress',
+    progress: '📊 Progress',
     level: 'Current Level:',
     score: 'Score:',
     target: 'Target Angle:',
-    timer: 'Time Remaining:',
-    difficulty: 'Difficulty:',
-    theorem: 'Theorem',
+    theorem: '✓ Theorem',
     theoremText: 'Inscribed angles subtended by the same arc are equal.',
-    hint: 'Hint',
+    hint: '💡 Hint',
     hintText: 'Look for points on the circle that form the same angle when looking at points A and B. The angle remains constant on the same arc.',
-    check: 'Check Answer',
-    next: 'Next Level',
-    restart: 'Restart',
+    check: '✓ Check Answer',
+    next: '→ Next Level',
+    restart: '↺ Restart',
     canvasTitle: 'Circle Canvas',
-    positionLabel: 'Point Position:',
-    a11yToggle: 'Accessibility',
-    colorSafe: 'Color Safe',
-    themeLight: 'Switch to light mode',
-    themeDark: 'Switch to dark mode'
+    positionLabel: 'Point Position:'
   },
   cn: {
-    navHomepage: '首页',
-    navQuiz: '测验',
-    navGame: '游戏',
-    breadcrumbGame: '游戏',
-    pageTitle: '圆周角游戏',
-    objective: '目标',
+    objective: '🎯 目标',
     objectiveText: '拖动圆上的蓝点以形成相同的圆周角。圆周角由您的点相对于点A和B的位置决定。',
-    progress: '进度',
+    progress: '📊 进度',
     level: '当前级别:',
     score: '得分:',
     target: '目标角度:',
-    timer: '剩余时间:',
-    difficulty: '难度:',
-    theorem: '定理',
+    theorem: '✓ 定理',
     theoremText: '由同一弧所对的圆周角相等。',
-    hint: '提示',
+    hint: '💡 提示',
     hintText: '在圆上找到形成相同角度（观察点A和B）的点。角度在同一弧上保持不变。',
-    check: '检查答案',
-    next: '下一关',
-    restart: '重新开始',
+    check: '✓ 检查答案',
+    next: '→ 下一关',
+    restart: '↺ 重新开始',
     canvasTitle: '圆形画布',
-    positionLabel: '点的位置:',
-    a11yToggle: '无障碍',
-    colorSafe: '色盲友好',
-    themeLight: '切换到日间模式',
-    themeDark: '切换到夜间模式'
+    positionLabel: '点的位置:'
   }
 };
 
@@ -807,48 +887,120 @@ langToggle.addEventListener('click', () => {
 function updateLanguageDisplay() {
   const lang = translations[gameState.currentLanguage];
   langToggle.textContent = gameState.currentLanguage === 'en' ? '中文' : 'EN';
-  const navLinks = document.querySelectorAll('.nav-menu .nav-link');
-  if (navLinks.length >= 3) {
-    navLinks[0].textContent = lang.navHomepage;
-    navLinks[1].textContent = lang.navQuiz;
-    navLinks[2].textContent = lang.navGame;
-  }
-  const breadcrumbCurrent = document.querySelector('.breadcrumb span');
-  if (breadcrumbCurrent) breadcrumbCurrent.textContent = lang.breadcrumbGame;
-  const pageTitle = document.querySelector('.page-title');
-  if (pageTitle) pageTitle.textContent = lang.pageTitle;
   document.querySelectorAll('.card-title')[0].textContent = lang.objective;
-  const objectiveTextNode = document.querySelector('.card-content p');
-  if (objectiveTextNode) objectiveTextNode.textContent = lang.objectiveText;
+  document.querySelectorAll('.card-content')[0].textContent = lang.objectiveText;
   document.querySelectorAll('.card-title')[1].textContent = lang.progress;
   document.querySelectorAll('.stat-label')[0].textContent = lang.level;
   document.querySelectorAll('.stat-label')[1].textContent = lang.score;
   document.querySelectorAll('.stat-label')[2].textContent = lang.target;
-  const timerLabel = document.getElementById('timerLabel');
-  if (timerLabel) timerLabel.textContent = lang.timer;
-  const difficultyLabel = document.getElementById('difficultyLabel');
-  if (difficultyLabel) difficultyLabel.textContent = lang.difficulty;
   document.querySelectorAll('.card-title')[2].textContent = lang.theorem;
   document.querySelectorAll('.card-title')[3].textContent = lang.hint;
   document.getElementById('checkBtn').textContent = lang.check;
   document.getElementById('nextBtn').textContent = lang.next;
   document.getElementById('restartBtn').textContent = lang.restart;
   document.querySelector('.canvas-title').textContent = lang.canvasTitle;
-  const positionLabel = document.querySelector('.position-display strong');
-  if (positionLabel) positionLabel.textContent = lang.positionLabel;
-  const a11yToggleBtn = document.getElementById('a11yToggleBtn');
-  if (a11yToggleBtn) a11yToggleBtn.textContent = lang.a11yToggle;
-  const colorSafeToggle = document.getElementById('colorSafeToggle');
-  if (colorSafeToggle) colorSafeToggle.textContent = lang.colorSafe;
-  themeToggle.title = document.body.classList.contains('dark-mode') ? lang.themeLight : lang.themeDark;
   setTheoremTexts();
-  scheduleNavbarOffsetSync();
 }
+
+// =====================
+// ACCESSIBILITY SETUP
+// =====================
+
+function setupAccessibilityControls() {
+  const a11yToggleBtn = document.getElementById('a11yToggleBtn');
+  const a11yPanel = document.getElementById('a11yPanel');
+  const fontDownBtn = document.getElementById('fontDownBtn');
+  const fontResetBtn = document.getElementById('fontResetBtn');
+  const fontUpBtn = document.getElementById('fontUpBtn');
+  const colorSafeToggle = document.getElementById('colorSafeToggle');
+
+  if (!a11yToggleBtn || !a11yPanel || !fontDownBtn || !fontResetBtn || !fontUpBtn || !colorSafeToggle) {
+    return;
+  }
+
+  // Load saved preferences
+  const savedFontScale = localStorage.getItem('fontScale') || 'normal';
+  const savedColorSafe = localStorage.getItem('colorSafe') === 'true';
+  const isDarkMode = localStorage.getItem('darkMode') === 'true';
+
+  // Apply saved settings
+  applyFontScale(savedFontScale);
+  if (savedColorSafe) {
+    document.body.classList.add('color-safe');
+    updateColorSafeButtonStyle(colorSafeToggle, true, isDarkMode);
+  }
+
+  const setPanelOpen = (open) => {
+    a11yPanel.classList.toggle('open', open);
+    a11yToggleBtn.setAttribute('aria-expanded', open);
+  };
+
+  a11yToggleBtn.addEventListener('click', (event) => {
+    event.stopPropagation();
+    setPanelOpen(!a11yPanel.classList.contains('open'));
+  });
+
+  a11yPanel.addEventListener('click', (event) => {
+    event.stopPropagation();
+  });
+
+  document.addEventListener('click', () => {
+    setPanelOpen(false);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.code === 'Escape') {
+      setPanelOpen(false);
+    }
+  });
+
+  fontDownBtn.addEventListener('click', () => applyFontScale('small'));
+  fontResetBtn.addEventListener('click', () => applyFontScale('normal'));
+  fontUpBtn.addEventListener('click', () => applyFontScale('large'));
+
+  colorSafeToggle.addEventListener('click', () => {
+    const isColorSafe = document.body.classList.toggle('color-safe');
+    localStorage.setItem('colorSafe', isColorSafe);
+    const isDark = document.body.classList.contains('dark-mode');
+    updateColorSafeButtonStyle(colorSafeToggle, isColorSafe, isDark);
+  });
+}
+
+function updateColorSafeButtonStyle(btn, isActive, isDarkMode) {
+  if (isActive) {
+    if (isDarkMode) {
+      btn.style.background = 'rgba(13, 110, 253, 0.4)';
+      btn.style.color = '#60a5fa';
+    } else {
+      btn.style.background = '#27ae60';
+      btn.style.color = '#fff';
+    }
+  } else {
+    if (isDarkMode) {
+      btn.style.background = '#f5f5f5';
+      btn.style.color = '#333';
+    } else {
+      btn.style.background = '#f5f5f5';
+      btn.style.color = '#333';
+    }
+  }
+}
+
+function applyFontScale(scale) {
+  document.body.classList.remove('font-small', 'font-normal', 'font-large');
+  document.body.classList.add(`font-${scale}`);
+  localStorage.setItem('fontScale', scale);
+}
+
+// =====================
+// INITIALIZATION
+// =====================
 
 window.addEventListener('load', () => {
   setupAccessibilityControls();
   initCanvas();
   updateLanguageDisplay();
-  scheduleNavbarOffsetSync();
-  setTimeout(syncNavbarOffset, 120);
+  updateCoinDisplay();
+  renderLeaderboard();
+  createLeaderboardToggleButton();
 });

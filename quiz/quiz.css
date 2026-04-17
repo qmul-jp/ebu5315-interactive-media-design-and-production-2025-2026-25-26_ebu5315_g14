@@ -319,6 +319,12 @@ body.color-safe .option-btn {
   color: #1d4ed8;
 }
 
+.score-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 #question-text {
   margin-bottom: 20px;
   font-size: 1.3rem;
@@ -361,6 +367,23 @@ body.color-safe .option-btn {
   color: #ffffff;
 }
 
+.option-btn.correct {
+  background: linear-gradient(140deg, #86efac, #10b981) !important;
+  border-color: rgba(5, 150, 105, 0.7) !important;
+  color: #ffffff !important;
+}
+
+.option-btn.incorrect {
+  background: linear-gradient(140deg, #fca5a5, #ef4444) !important;
+  border-color: rgba(220, 38, 38, 0.7) !important;
+  color: #ffffff !important;
+}
+
+.option-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .nav-buttons {
   display: flex;
   gap: 12px;
@@ -389,6 +412,104 @@ body.color-safe .option-btn {
   background: linear-gradient(135deg, #16a34a, #15803d);
 }
 
+/* ==================== 反馈区域样式 ==================== */
+.feedback-area {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.3s ease;
+}
+
+.feedback-correct {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #059669;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.feedback-correct i {
+  font-size: 1.3rem;
+  color: #10b981;
+}
+
+.points-earned {
+  margin-left: auto;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #047857;
+}
+
+.feedback-incorrect {
+  color: #dc2626;
+}
+
+.feedback-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.feedback-header i {
+  font-size: 1.3rem;
+  color: #ef4444;
+}
+
+.feedback-explanation {
+  background: rgba(254, 226, 226, 0.1);
+  border-left: 3px solid #ef4444;
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+}
+
+.correct-answer {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: #1e293b;
+}
+
+.correct-answer strong {
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.correct-answer span {
+  color: #059669;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.explanation-text {
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.explanation-text strong {
+  color: #374151;
+  font-size: 0.95rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.explanation-text p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* 暗色模式 */
 body.dark-mode .difficulty-selector,
 body.dark-mode #question-text,
 body.dark-mode .option-btn {
@@ -453,6 +574,65 @@ body.dark-mode .theorem-btn:hover {
   color: #ffffff;
 }
 
+/* 暗色模式反馈区域 */
+body.dark-mode .feedback-area {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #e2e8f0;
+}
+
+body.dark-mode .feedback-correct {
+  color: #34d399;
+}
+
+body.dark-mode .feedback-correct i {
+  color: #10b981;
+}
+
+body.dark-mode .points-earned {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+body.dark-mode .feedback-incorrect {
+  color: #f87171;
+}
+
+body.dark-mode .feedback-header i {
+  color: #ef4444;
+}
+
+body.dark-mode .feedback-explanation {
+  background: rgba(127, 29, 29, 0.1);
+  border-left-color: #ef4444;
+}
+
+body.dark-mode .correct-answer {
+  color: #e2e8f0;
+}
+
+body.dark-mode .correct-answer strong {
+  color: #cbd5e1;
+}
+
+body.dark-mode .correct-answer span {
+  color: #34d399;
+}
+
+body.dark-mode .explanation-text {
+  color: #cbd5e1;
+}
+
+body.dark-mode .explanation-text strong {
+  color: #e2e8f0;
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 768px) {
   body {
     padding-top: var(--nav-offset, 124px);
@@ -494,6 +674,21 @@ body.dark-mode .theorem-btn:hover {
 
   .nav-buttons {
     flex-direction: column;
+  }
+  
+  .feedback-area {
+    padding: 14px 16px;
+  }
+  
+  .feedback-correct {
+    flex-wrap: wrap;
+  }
+  
+  .points-earned {
+    margin-left: 0;
+    margin-top: 8px;
+    width: 100%;
+    text-align: center;
   }
 }
 

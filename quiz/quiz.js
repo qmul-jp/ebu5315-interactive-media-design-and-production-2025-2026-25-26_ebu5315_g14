@@ -1,4 +1,4 @@
-// quiz.js - 完整的交互逻辑
+// quiz.js - 增强版：集成AI动态难度调整与智能避重算法
 
 // ==================== 分数配置 ====================
 const difficultyScores = {
@@ -7,10 +7,31 @@ const difficultyScores = {
   hard: 3     // 困难题每题3分
 };
 
-// ==================== 题库数据 ====================
+// ==================== AI 增强配置 ====================
+const aiConfig = {
+  // 难度调整参数 (基于简化IRT模型)
+  initialAbility: 0.0,          // 用户初始能力估计 (Logit尺度，0为平均难度)
+  abilityChangePerCorrect: 0.3,   // 每答对一题，能力估计增加值
+  abilityChangePerIncorrect: -0.4,// 每答错一题，能力估计减少值
+  difficultyTolerance: 1.2,       // 能力与题目难度的匹配容差 (越大，选题范围越宽)
+
+  // 避重算法参数
+  exposureDecayFactor: 0.85,      // 曝光权重衰减因子 (0-1，越小“遗忘”越快)
+  recentQuestionWindow: 8,        // 近期题目窗口大小，避免窗口内题目重复
+  selectionTemperature: 0.4,      // 选择随机性参数 (0为完全按分数贪婪选择，越大越随机)
+
+  // 难度自适应阈值
+  abilityThresholdForMedium: 0.8,  // 能力值高于此，下次测验建议Medium
+  abilityThresholdForHard: 1.5,    // 能力值高于此，下次测验建议Hard
+  abilityThresholdForEasy: -0.5    // 能力值低于此，下次测验建议Easy
+};
+
+// ==================== 题库数据 (增强版，含ID与难度值) ====================
 const questionBank = {
   easy: [
     {
+      id: 'easy_1',
+      difficulty: -1.5,
       question_en: "What is the radius of a circle with equation x² + y² = 25?",
       question_cn: "圆 x² + y² = 25 的半径是多少？",
       options_en: ["5", "10", "25", "50"],
@@ -20,6 +41,8 @@ const questionBank = {
       explanation_cn: "圆的标准方程为 x² + y² = r²，其中 r 是半径。由 x² + y² = 25 可得 r² = 25，因此 r = √25 = 5。"
     },
     {
+      id: 'easy_2',
+      difficulty: -1.2,
       question_en: "Which of the following is the formula for the area of a circle?",
       question_cn: "下列哪个是圆的面积公式？",
       options_en: ["πr", "πr²", "2πr", "πd"],
@@ -29,6 +52,8 @@ const questionBank = {
       explanation_cn: "圆的面积公式为 A = πr²，其中 r 是半径。"
     },
     {
+      id: 'easy_3',
+      difficulty: -1.0,
       question_en: "The diameter of a circle is 12. What is its circumference?",
       question_cn: "圆的直径是12，它的周长是多少？",
       options_en: ["12π", "24π", "6π", "36π"],
@@ -38,6 +63,8 @@ const questionBank = {
       explanation_cn: "圆的周长 = πd = π × 12 = 12π。"
     },
     {
+      id: 'easy_4',
+      difficulty: -0.9,
       question_en: "In a circle, the angle subtended by a diameter at the circumference is a ______ angle.",
       question_cn: "在圆中，直径在圆周上所对的角是______角。",
       options_en: ["acute", "right", "obtuse", "reflex"],
@@ -47,6 +74,8 @@ const questionBank = {
       explanation_cn: "半圆内的角总是直角（90°）。"
     },
     {
+      id: 'easy_5',
+      difficulty: -0.7,
       question_en: "What is the equation of a circle with center (3, -2) and radius 4?",
       question_cn: "圆心为(3, -2)，半径为4的圆方程是什么？",
       options_en: ["(x-3)² + (y+2)² = 16", "(x+3)² + (y-2)² = 16", "(x-3)² + (y-2)² = 16", "(x+3)² + (y+2)² = 16"],
@@ -56,6 +85,8 @@ const questionBank = {
       explanation_cn: "标准方程：(x-h)² + (y-k)² = r²。这里 h=3, k=-2, r=4，所以 (x-3)² + (y+2)² = 16。"
     },
     {
+      id: 'easy_6',
+      difficulty: -0.5,
       question_en: "A circle's radius is 3. What is its area?",
       question_cn: "圆的半径为3，面积是多少？",
       options_en: ["3π", "6π", "9π", "12π"],
@@ -65,6 +96,8 @@ const questionBank = {
       explanation_cn: "面积 = πr² = π × 3² = 9π。"
     },
     {
+      id: 'easy_7',
+      difficulty: -0.8,
       question_en: "What is a chord?",
       question_cn: "什么是弦？",
       options_en: ["Line from center to edge", "Line through center", "Line connecting two points on circle", "Tangent line"],
@@ -74,6 +107,8 @@ const questionBank = {
       explanation_cn: "弦是连接圆上两点的直线段。"
     },
     {
+      id: 'easy_8',
+      difficulty: -0.6,
       question_en: "A circle's area is 16π. What is radius?",
       question_cn: "圆的面积是16π，半径是多少？",
       options_en: ["2", "4", "8", "16"],
@@ -83,6 +118,8 @@ const questionBank = {
       explanation_cn: "面积 = πr² = 16π → r² = 16 → r = 4。"
     },
     {
+      id: 'easy_9',
+      difficulty: -0.4,
       question_en: "How many tangents from an external point?",
       question_cn: "从圆外一点可以作多少条切线？",
       options_en: ["1", "2", "3", "4"],
@@ -92,6 +129,8 @@ const questionBank = {
       explanation_cn: "从圆外一点可以作两条切线。"
     },
     {
+      id: 'easy_10',
+      difficulty: -0.3,
       question_en: "Circumference is 20π. What is diameter?",
       question_cn: "周长是20π，直径是多少？",
       options_en: ["5", "10", "20", "40"],
@@ -103,6 +142,8 @@ const questionBank = {
   ],
   medium: [
     {
+      id: 'medium_1',
+      difficulty: 0.0,
       question_en: "Two chords are equal if they are equidistant from the ______.",
       question_cn: "如果两条弦到______距离相等，则它们长度相等。",
       options_en: ["center", "edge", "tangent point", "diameter"],
@@ -112,6 +153,8 @@ const questionBank = {
       explanation_cn: "圆的等弦到圆心的距离相等。"
     },
     {
+      id: 'medium_2',
+      difficulty: 0.2,
       question_en: "The angle in a semicircle is always ______ degrees.",
       question_cn: "半圆内的角总是______度。",
       options_en: ["45", "90", "180", "360"],
@@ -121,6 +164,8 @@ const questionBank = {
       explanation_cn: "半圆内的角总是90°（直角）。"
     },
     {
+      id: 'medium_3',
+      difficulty: 0.4,
       question_en: "A tangent to a circle is perpendicular to the ______ at the point of contact.",
       question_cn: "圆的切线在切点处垂直于______。",
       options_en: ["chord", "diameter", "radius", "arc"],
@@ -130,6 +175,8 @@ const questionBank = {
       explanation_cn: "切线在切点处垂直于半径。"
     },
     {
+      id: 'medium_4',
+      difficulty: 0.5,
       question_en: "The measure of a central angle is ______ the measure of its intercepted arc.",
       question_cn: "圆心角的度数______它所对弧的度数。",
       options_en: ["half of", "equal to", "twice", "unrelated to"],
@@ -139,6 +186,8 @@ const questionBank = {
       explanation_cn: "圆心角与其所对弧的度数相等。"
     },
     {
+      id: 'medium_5',
+      difficulty: 0.6,
       question_en: "An inscribed angle that intercepts a diameter is always ______.",
       question_cn: "对直径的圆周角总是______。",
       options_en: ["acute", "right", "obtuse", "straight"],
@@ -148,6 +197,8 @@ const questionBank = {
       explanation_cn: "对直径的圆周角总是直角。"
     },
     {
+      id: 'medium_6',
+      difficulty: 0.3,
       question_en: "Two tangents drawn from an external point to a circle are ______ in length.",
       question_cn: "从圆外一点作的两条切线长度______。",
       options_en: ["equal", "different", "parallel", "perpendicular"],
@@ -157,6 +208,8 @@ const questionBank = {
       explanation_cn: "从圆外一点作的两条切线长度相等。"
     },
     {
+      id: 'medium_7',
+      difficulty: 0.7,
       question_en: "Angles in the same segment of a circle are ______.",
       question_cn: "同弧所对的圆周角______。",
       options_en: ["complementary", "supplementary", "equal", "unequal"],
@@ -166,6 +219,8 @@ const questionBank = {
       explanation_cn: "同弧所对的圆周角相等。"
     },
     {
+      id: 'medium_8',
+      difficulty: 0.8,
       question_en: "The product of segments of intersecting chords is ______.",
       question_cn: "相交弦定理：两条相交弦被交点分成的两段长度乘积______。",
       options_en: ["different", "equal", "unrelated", "proportional"],
@@ -175,6 +230,8 @@ const questionBank = {
       explanation_cn: "相交弦定理：两条相交弦被交点分成的两段长度乘积相等。"
     },
     {
+      id: 'medium_9',
+      difficulty: 1.0,
       question_en: "Angle between tangent and chord through point of contact equals angle in ______ segment.",
       question_cn: "切线和过切点的弦所夹的角等于______的圆周角。",
       options_en: ["alternate", "opposite", "same", "complementary"],
@@ -184,6 +241,8 @@ const questionBank = {
       explanation_cn: "切线和过切点的弦所夹的角等于交错弧上的圆周角。"
     },
     {
+      id: 'medium_10',
+      difficulty: 0.9,
       question_en: "Circle with center (0,0) passes through (3,4). What is radius?",
       question_cn: "圆心在(0,0)且过点(3,4)的圆，半径是多少？",
       options_en: ["3", "4", "5", "7"],
@@ -195,6 +254,8 @@ const questionBank = {
   ],
   hard: [
     {
+      id: 'hard_1',
+      difficulty: 1.2,
       question_en: "What is the equation of a circle with center (3, -2) and radius 4?",
       question_cn: "圆心为(3, -2)，半径为4的圆方程是什么？",
       options_en: ["(x-3)² + (y+2)² = 16", "(x+3)² + (y-2)² = 16", "(x-3)² + (y-2)² = 16", "(x+3)² + (y+2)² = 16"],
@@ -204,6 +265,8 @@ const questionBank = {
       explanation_cn: "标准方程：(x-h)² + (y-k)² = r²。这里 h=3, k=-2, r=4，所以 (x-3)² + (y+2)² = 16。"
     },
     {
+      id: 'hard_2',
+      difficulty: 1.6,
       question_en: "Angle between tangents from (1,√3) to circle x²+y²=4 is?",
       question_cn: "从点(1,√3)到圆x²+y²=4的两条切线夹角是多少？",
       options_en: ["30°", "60°", "90°", "120°"],
@@ -213,6 +276,8 @@ const questionBank = {
       explanation_cn: "点到圆心距离 = √(1²+√3²)=2。半径=2，所以点在圆上。两条切线夹角为60°。"
     },
     {
+      id: 'hard_3',
+      difficulty: 1.8,
       question_en: "Radical axis of circles x²+y²-4x+6y=0 and x²+y²+2x-8y+1=0 is:",
       question_cn: "圆x²+y²-4x+6y=0和x²+y²+2x-8y+1=0的根轴是：",
       options_en: ["6x-14y+1=0", "6x+14y-1=0", "3x-7y+1=0", "3x+7y-1=0"],
@@ -222,6 +287,8 @@ const questionBank = {
       explanation_cn: "两方程相减：(x²+y²-4x+6y) - (x²+y²+2x-8y+1)=0 → -4x+6y-2x+8y-1=0 → -6x+14y-1=0 → 6x-14y+1=0。"
     },
     {
+      id: 'hard_4',
+      difficulty: 2.0,
       question_en: "Common chord of circles x²+y²=16 and (x-4)²+y²=16 has length?",
       question_cn: "圆x²+y²=16和(x-4)²+y²=16的公共弦长度是多少？",
       options_en: ["4√3", "8", "8√3", "16"],
@@ -231,6 +298,8 @@ const questionBank = {
       explanation_cn: "圆心：(0,0)和(4,0)，半径=4。圆心距=4 → 两圆外切。公共弦长=4√3。"
     },
     {
+      id: 'hard_5',
+      difficulty: 2.2,
       question_en: "Circle passing through (1,0), (0,1), (2,1) has center:",
       question_cn: "过点(1,0), (0,1), (2,1)的圆的圆心是：",
       options_en: ["(1,1)", "(1.5,1.5)", "(1,2)", "(0.5,0.5)"],
@@ -268,7 +337,8 @@ const translations = {
     correct: "Correct!",
     incorrect: "Incorrect",
     correctAnswer: "Correct answer:",
-    explanation: "Explanation:"
+    explanation: "Explanation:",
+    aiSuggestion: "AI Suggestion: Based on your performance, try "
   },
   cn: {
     logo: "CircleLab",
@@ -294,7 +364,8 @@ const translations = {
     correct: "回答正确！",
     incorrect: "回答错误",
     correctAnswer: "正确答案：",
-    explanation: "解析："
+    explanation: "解析：",
+    aiSuggestion: "AI建议：根据您的表现，下次试试"
   }
 };
 
@@ -341,10 +412,231 @@ let selectedOption = null;
 let currentLang = localStorage.getItem('language') || 'en';
 let selectedDifficulty = null;
 let currentQuizSet = [];
-let userAnswers = []; // 存储用户答案
+let userAnswers = [];
 let hasInitialized = false;
 let showFeedback = false;
 let currentFeedback = { isCorrect: false, explanation: '' };
+
+// ==================== AI 状态变量 ====================
+let userAbility = aiConfig.initialAbility;
+let questionExposure = {};
+let recentQuestionIds = [];
+let userPerformanceLog = [];
+
+// ==================== AI 核心功能 ====================
+
+/**
+ * AI智能选题算法
+ * 1. 根据用户能力匹配题目难度
+ * 2. 避免近期重复和过度曝光
+ * @param {string} baseDifficulty - 基准难度 ('easy', 'medium', 'hard')
+ * @param {number} count - 需要选择的题目数量
+ * @returns {Array} 选中的题目数组
+ */
+function getAISelectedQuestions(baseDifficulty, count = 5) {
+  console.log(`🤖 AI selecting ${count} ${baseDifficulty} questions. User ability: ${userAbility.toFixed(2)}`);
+
+  const allQuestions = questionBank[baseDifficulty];
+  if (allQuestions.length === 0) {
+    console.error(`No questions found for difficulty: ${baseDifficulty}`);
+    return [];
+  }
+
+  // 计算每道题的综合选择得分
+  const candidateScores = allQuestions.map(q => {
+    // 1. 难度匹配度得分 (核心：能力与难度越接近，得分越高)
+    const difficultyDiff = Math.abs(q.difficulty - userAbility);
+    const matchScore = Math.exp(-Math.pow(difficultyDiff, 2) / (2 * Math.pow(aiConfig.difficultyTolerance, 2)));
+
+    // 2. 曝光惩罚 (曝光次数越多，得分惩罚越大)
+    const exposure = questionExposure[q.id] || 0.1; // 避免除零
+    const exposurePenalty = 1.0 + Math.log(1 + exposure);
+
+    // 3. 近期重复惩罚 (如果最近出现过，大幅降低得分)
+    const isRecent = recentQuestionIds.includes(q.id);
+    const recencyPenalty = isRecent ? 0.1 : 1.0;
+
+    // 4. 加入随机性，增加多样性
+    const randomNoise = (Math.random() - 0.5) * 2 * aiConfig.selectionTemperature;
+
+    // 综合得分 = 匹配度 * 近期惩罚 / 曝光惩罚 + 随机噪声
+    const totalScore = (matchScore * recencyPenalty / exposurePenalty) + randomNoise;
+
+    return {
+      question: q,
+      score: totalScore,
+      difficultyDiff: difficultyDiff,
+      exposure: exposure,
+      isRecent: isRecent
+    };
+  });
+
+  // 按得分降序排序
+  candidateScores.sort((a, b) => b.score - a.score);
+
+  // 选择前N道题
+  const selected = candidateScores.slice(0, count).map(item => {
+    console.log(`  ➤ Selected: ${item.question.id} (score: ${item.score.toFixed(3)}, diff: ${item.question.difficulty}, recent: ${item.isRecent})`);
+    return item.question;
+  });
+
+  // 更新系统状态
+  updateAISystemState(selected);
+
+  return selected;
+}
+
+/**
+ * 更新AI系统状态（曝光记录、近期记录、能力衰减）
+ * @param {Array} selectedQuestions - 本轮选中的题目
+ */
+function updateAISystemState(selectedQuestions) {
+  // 1. 更新曝光计数
+  selectedQuestions.forEach(q => {
+    questionExposure[q.id] = (questionExposure[q.id] || 0) + 1;
+  });
+
+  // 2. 更新近期题目列表
+  selectedQuestions.forEach(q => {
+    if (!recentQuestionIds.includes(q.id)) {
+      recentQuestionIds.push(q.id);
+    }
+  });
+  // 保持列表长度
+  if (recentQuestionIds.length > aiConfig.recentQuestionWindow) {
+    recentQuestionIds = recentQuestionIds.slice(-aiConfig.recentQuestionWindow);
+  }
+
+  // 3. 曝光衰减（模拟遗忘机制）
+  Object.keys(questionExposure).forEach(qId => {
+    questionExposure[qId] *= aiConfig.exposureDecayFactor;
+    if (questionExposure[qId] < 0.05) {
+      delete questionExposure[qId]; // 清理接近零的值
+    }
+  });
+
+  // 4. 保存状态到本地存储
+  saveAIState();
+}
+
+/**
+ * 根据答题结果更新用户能力估计
+ * @param {boolean} isCorrect - 是否答对
+ * @param {Object} question - 题目对象
+ */
+function updateUserAbility(isCorrect, question) {
+  const oldAbility = userAbility;
+
+  // 基础调整：答对增加能力，答错降低能力
+  if (isCorrect) {
+    userAbility += aiConfig.abilityChangePerCorrect;
+  } else {
+    userAbility += aiConfig.abilityChangePerIncorrect;
+  }
+
+  // 精细调整：基于题目难度进行校准
+  // 如果答对了难题，能力提升更多；答错了简单题，能力下降更多
+  const difficultyBias = (question.difficulty - oldAbility) * 0.15;
+  userAbility += difficultyBias;
+
+  // 记录表现日志
+  userPerformanceLog.push({
+    qId: question.id,
+    correct: isCorrect,
+    difficulty: question.difficulty,
+    abilityBefore: oldAbility,
+    abilityAfter: userAbility,
+    timestamp: Date.now()
+  });
+
+  // 限制能力值在合理范围内
+  userAbility = Math.max(-3, Math.min(3, userAbility));
+
+  console.log(`📈 User ability updated: ${oldAbility.toFixed(2)} → ${userAbility.toFixed(2)} (${isCorrect ? 'Correct' : 'Incorrect'}, Q-diff: ${question.difficulty})`);
+
+  // 保存状态
+  saveAIState();
+}
+
+/**
+ * 获取AI推荐的下次难度
+ * @returns {string} 推荐的难度级别
+ */
+function getAIRecommendedDifficulty() {
+  if (userAbility >= aiConfig.abilityThresholdForHard) {
+    return 'hard';
+  } else if (userAbility >= aiConfig.abilityThresholdForMedium) {
+    return 'medium';
+  } else {
+    return 'easy';
+  }
+}
+
+/**
+ * 在测验完成时显示AI建议
+ */
+function showAIDifficultySuggestion() {
+  const recommendedDiff = getAIRecommendedDifficulty();
+  const t = translations[currentLang];
+  const diffMap = {
+    easy: currentLang === 'en' ? 'Easy' : '简单',
+    medium: currentLang === 'en' ? 'Medium' : '中等',
+    hard: currentLang === 'en' ? 'Hard' : '困难'
+  };
+
+  console.log(`💡 AI Recommendation: Next try "${recommendedDiff}" (ability: ${userAbility.toFixed(2)})`);
+
+  // 仅在推荐难度与当前选择不同时显示建议
+  if (recommendedDiff !== selectedDifficulty) {
+    const suggestionText = `${t.aiSuggestion}${diffMap[recommendedDiff]}`;
+    
+    // 可以优雅地显示在完成提示中，这里我们修改完成提示
+    return suggestionText;
+  }
+  return '';
+}
+
+/**
+ * 保存AI状态到本地存储
+ */
+function saveAIState() {
+  try {
+    localStorage.setItem('circleLab_userAbility', userAbility.toString());
+    localStorage.setItem('circleLab_questionExposure', JSON.stringify(questionExposure));
+    localStorage.setItem('circleLab_recentQuestionIds', JSON.stringify(recentQuestionIds));
+    localStorage.setItem('circleLab_userPerformanceLog', JSON.stringify(userPerformanceLog.slice(-50))); // 只保存最近50条
+  } catch (e) {
+    console.warn("Failed to save AI state to localStorage:", e);
+  }
+}
+
+/**
+ * 从本地存储加载AI状态
+ */
+function loadAIState() {
+  try {
+    const savedAbility = localStorage.getItem('circleLab_userAbility');
+    if (savedAbility) userAbility = parseFloat(savedAbility);
+
+    const savedExposure = localStorage.getItem('circleLab_questionExposure');
+    if (savedExposure) questionExposure = JSON.parse(savedExposure);
+
+    const savedRecent = localStorage.getItem('circleLab_recentQuestionIds');
+    if (savedRecent) recentQuestionIds = JSON.parse(savedRecent);
+
+    const savedLog = localStorage.getItem('circleLab_userPerformanceLog');
+    if (savedLog) userPerformanceLog = JSON.parse(savedLog);
+
+    console.log(`🔄 Loaded AI state: ability=${userAbility.toFixed(2)}, recentQ=${recentQuestionIds.length}, exposureKeys=${Object.keys(questionExposure).length}`);
+  } catch (e) {
+    console.warn("Failed to load AI state from localStorage:", e);
+    // 初始化默认状态
+    userAbility = aiConfig.initialAbility;
+    questionExposure = {};
+    recentQuestionIds = [];
+    userPerformanceLog = [];
+  }
+}
 
 // ==================== 初始化函数 ====================
 function init() {
@@ -353,7 +645,7 @@ function init() {
   }
   hasInitialized = true;
 
-  console.log("Quiz page initializing...");
+  console.log("Quiz page initializing with AI enhancements...");
   
   // 1. 恢复语言设置
   updateLanguageText();
@@ -374,16 +666,19 @@ function init() {
     themeToggle.title = currentLang === 'en' ? translations[currentLang].themeDay : translations.cn.themeDay;
   }
   
-  // 3. 显示难度选择器
+  // 3. 加载AI状态
+  loadAIState();
+  
+  // 4. 显示难度选择器
   showDifficultySelector();
   
-  // 4. 设置事件监听器
+  // 5. 设置事件监听器
   setupEventListeners();
 
-  // 5. 初始化无障碍功能
+  // 6. 初始化无障碍功能
   setupAccessibilityControls();
   
-  console.log("Quiz page initialized successfully!");
+  console.log("✅ AI-enhanced quiz page initialized successfully!");
 }
 
 function syncNavbarOffset() {
@@ -407,7 +702,7 @@ function showDifficultySelector() {
   optionsContainerEl.style.display = 'none';
   navButtonsEl.style.display = 'none';
   
-  // 重置测验状态
+  // 重置当前测验状态
   currentQuizSet = [];
   currentQuestion = 0;
   score = 0;
@@ -424,24 +719,12 @@ function showDifficultySelector() {
   updateNavButtons();
 }
 
-function getRandomQuestions(difficulty) {
-  console.log(`Getting random questions for difficulty: ${difficulty}`);
-  const allQuestions = [...questionBank[difficulty]];
-  const selected = [];
-  
-  for (let i = 0; i < 5 && allQuestions.length > 0; i++) {
-    const randomIndex = Math.floor(Math.random() * allQuestions.length);
-    selected.push(allQuestions.splice(randomIndex, 1)[0]);
-  }
-  
-  console.log(`Selected ${selected.length} questions`);
-  return selected;
-}
-
 function startQuizWithDifficulty(difficulty) {
-  console.log(`Starting quiz with difficulty: ${difficulty}`);
+  console.log(`🚀 Starting AI-powered quiz with difficulty: ${difficulty}`);
   selectedDifficulty = difficulty;
-  currentQuizSet = getRandomQuestions(difficulty);
+  
+  // 使用AI算法选择题目
+  currentQuizSet = getAISelectedQuestions(difficulty);
   
   if (currentQuizSet.length === 0) {
     alert(currentLang === 'en' ? 'No questions available for this difficulty.' : '此难度没有可用的题目。');
@@ -464,7 +747,7 @@ function startQuizWithDifficulty(difficulty) {
       : `(每题${points}分)`;
   }
   
-  // 重置状态
+  // 重置当前测验状态
   currentQuestion = 0;
   score = 0;
   selectedOption = null;
@@ -476,8 +759,8 @@ function startQuizWithDifficulty(difficulty) {
   updateNavButtons();
   updateLanguageText();
   
-  console.log(`Quiz started with ${currentQuizSet.length} ${difficulty} questions`);
-  console.log(`Points per question: ${difficultyScores[difficulty]}`);
+  console.log(`📊 Quiz started with ${currentQuizSet.length} AI-selected ${difficulty} questions`);
+  console.log(`🎯 Current user ability: ${userAbility.toFixed(2)}`);
 }
 
 // ==================== 语言切换功能 ====================
@@ -708,6 +991,9 @@ function checkAnswerAndProvideFeedback() {
     }
   });
   
+  // 更新用户能力估计 (AI核心功能)
+  updateUserAbility(isCorrect, q);
+  
   // 准备反馈信息
   currentFeedback = {
     isCorrect: isCorrect,
@@ -724,7 +1010,7 @@ function checkAnswerAndProvideFeedback() {
     btn.disabled = true;
   });
   
-  console.log(`Answer ${isCorrect ? 'correct' : 'incorrect'}`);
+  console.log(`✅ Answer ${isCorrect ? 'correct' : 'incorrect'}`);
 }
 
 function renderFeedback() {
@@ -827,7 +1113,14 @@ function nextQuestion() {
     const totalPossible = currentQuizSet.length * difficultyScores[selectedDifficulty];
     const finalScore = `${score}/${totalPossible}`;
     const t = translations[currentLang];
-    alert(t.quizComplete + finalScore);
+    
+    // 获取AI建议
+    const aiSuggestion = showAIDifficultySuggestion();
+    const completionMessage = aiSuggestion 
+      ? `${t.quizComplete}${finalScore}\n\n${aiSuggestion}`
+      : `${t.quizComplete}${finalScore}`;
+    
+    alert(completionMessage);
     
     setTimeout(() => {
       showDifficultySelector();
@@ -921,7 +1214,7 @@ function setupAccessibilityControls() {
 
 // ==================== 页面加载初始化 ====================
 document.addEventListener('DOMContentLoaded', function() {
-  console.log("DOM fully loaded, initializing quiz...");
+  console.log("DOM fully loaded, initializing AI-enhanced quiz...");
   try {
     init();
   } catch (error) {

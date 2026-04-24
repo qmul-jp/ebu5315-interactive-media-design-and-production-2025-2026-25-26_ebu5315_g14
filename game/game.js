@@ -1,5 +1,43 @@
 // Game page script
 const storedLanguage = (localStorage.getItem('language') || 'en').toLowerCase();
+
+// 立即应用字体大小设置，避免页面加载时的字体大小不匹配
+function applyInitialFontScale() {
+  const savedFontScale = localStorage.getItem('fontScale') || 'normal';
+  document.body.classList.remove('font-small', 'font-normal', 'font-large');
+  document.body.classList.add(`font-${savedFontScale}`);
+}
+
+// 立即应用字体大小设置
+applyInitialFontScale();
+
+// 音效对象（延迟加载以提高页面加载速度）
+const sounds = {
+  correct: null,
+  wrong: null,
+  levelComplete: null,
+  timeUp: null
+};
+
+// 预加载音效函数
+function preloadSounds() {
+  setTimeout(() => {
+    sounds.correct = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3');
+    sounds.wrong = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3');
+    sounds.levelComplete = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-game-level-completed-2059.mp3');
+    sounds.timeUp = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-failure-arcade-alert-notification-240.mp3');
+  }, 1000); // 延迟1秒加载音效，不阻塞页面加载
+}
+
+// 播放音效函数
+function playSound(soundName) {
+  if (sounds[soundName]) {
+    sounds[soundName].currentTime = 0; // 重置音效
+    sounds[soundName].play().catch(e => {
+      console.log('Error playing sound:', e);
+    });
+  }
+}
 const THEOREM_DEFINITIONS = {
   inscribed: {
     en: {
@@ -19,6 +57,26 @@ const THEOREM_DEFINITIONS = {
     cn: {
       text: '圆心角是同一弧所对的圆周角的两倍。',
       hint: 'A和B所对的圆心角是圆周角的两倍。蓝点形成的圆周角应等于圆心角的一半。'
+    }
+  },
+  tangentChord: {
+    en: {
+      text: 'The angle between a tangent and a chord equals the inscribed angle in the opposite arc.',
+      hint: 'Drag the blue point so the tangent at that point matches the inscribed arc angle formed by the fixed chord.'
+    },
+    cn: {
+      text: '切线与弦之间的角等于对弧上的圆周角。',
+      hint: '拖动蓝点，使该点处的切线角等于固定弦所对的圆周角。'
+    }
+  },
+  cyclicQuad: {
+    en: {
+      text: 'Opposite angles in a cyclic quadrilateral sum to 180°.',
+      hint: 'Move the blue point so the opposite angles formed with A, B and C add up to a straight angle.'
+    },
+    cn: {
+      text: '圆内四边形的对角和为180°。',
+      hint: '移动蓝点，使与A、B、C形成的对角和为直线角。'
     }
   },
   semicircle: {
@@ -52,6 +110,7 @@ const gameState = {
   canvas: document.getElementById('gameCanvas'),
   ctx: null,
   draggingPoint: false,
+  draggingPointType: null, // 'A', 'B', 'X', or null
   pointX: 0,
   pointY: 0,
   centerX: 0,
@@ -72,7 +131,10 @@ const gameState = {
   feedbackAnimation: null,
   currentLanguage: storedLanguage === 'cn' ? 'cn' : 'en',
   currentTheoremType: 'inscribed',
-  difficulty: 'Easy'
+  mode: 'inscribed',
+  difficulty: 'Easy',
+  centralAngle: 0, // 圆心角
+  inscribedAngle: 0 // 圆周角
 };
 // =====================
 // COIN/UNLOCK/LEADERBOARD SYSTEMS
@@ -215,7 +277,8 @@ function toggleLeaderboardVisibility() {
   }
   const btn = document.getElementById('leaderboardToggleBtn');
   if (btn) {
-    btn.textContent = leaderboardVisible ? '📋 隐藏排行榜' : '📋 显示排行榜';
+    const lang = translations[gameState.currentLanguage];
+    btn.textContent = leaderboardVisible ? lang.leaderboardHideBtn : lang.leaderboardBtn;
     btn.style.background = leaderboardVisible ? '#27ae60' : '#f5f5f5';
     btn.style.color = leaderboardVisible ? '#fff' : '#333';
   }
@@ -244,13 +307,14 @@ function renderLeaderboard() {
     document.body.appendChild(panel);
   }
   const arr = loadLeaderboard();
+  const lang = translations[gameState.currentLanguage];
   let html = '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #eee;">';
-  html += '<span style="font-weight:bold;font-size:1.1rem;">🏆 Leaderboard</span>';
+  html += `<span style="font-weight:bold;font-size:1.1rem;">🏆 ${lang.leaderboard}</span>`;
   html += '<button id="leaderboardCloseBtn" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#999;">✕</button>';
   html += '</div>';
   
   if (!arr.length) {
-    html += '<div style="padding:16px;text-align:center;color:#999;">No scores yet.</div>';
+    html += `<div style="padding:16px;text-align:center;color:#999;">${lang.noScores}</div>`;
   } else {
     html += '<ol style="margin:0;padding:12px 16px;list-style-position:inside;">';
     for (let i = 0; i < arr.length; ++i) {
@@ -272,7 +336,8 @@ function createLeaderboardToggleButton() {
   if (document.getElementById('leaderboardToggleBtn')) return;
   const btn = document.createElement('button');
   btn.id = 'leaderboardToggleBtn';
-  btn.textContent = '📋 显示排行榜';
+  const lang = translations[gameState.currentLanguage];
+  btn.textContent = lang.leaderboardBtn;
   btn.style.position = 'fixed';
   btn.style.left = '16px';
   btn.style.bottom = '24px';
@@ -294,9 +359,25 @@ function createLeaderboardToggleButton() {
 // ========== END SYSTEMS ==========
 
 function initCanvas() {
+  // 获取设备像素比，提高高DPI屏幕上的动画清晰度
+  const dpr = window.devicePixelRatio || 1;
+  const rect = gameState.canvas.getBoundingClientRect();
+  
+  // 调整Canvas实际尺寸以匹配设备像素比
+  gameState.canvas.width = rect.width * dpr;
+  gameState.canvas.height = rect.height * dpr;
+  
+  // 获取上下文并缩放
   gameState.ctx = gameState.canvas.getContext('2d');
-  gameState.centerX = gameState.canvas.width / 2;
-  gameState.centerY = gameState.canvas.height / 2;
+  gameState.ctx.scale(dpr, dpr);
+  
+  // 计算中心点（使用CSS像素）
+  gameState.centerX = rect.width / 2;
+  gameState.centerY = rect.height / 2;
+  
+  // 调整半径以适应新的尺寸
+  gameState.radius = Math.min(gameState.centerX, gameState.centerY) * 0.7;
+  
   createTimerDisplay();
   createDifficultyControl();
   generateNewLevel();
@@ -307,66 +388,75 @@ function initCanvas() {
 function generateNewLevel() {
   applyDifficultySettings();
   gameState.currentTheoremType = selectRandomTheorem();
+  gameState.mode = gameState.currentTheoremType;
   gameState.pointC = null;
   gameState.pointD = null;
   gameState.levelActive = true;
   gameState.dragDisabled = false;
 
   const angleA = Math.random() * Math.PI * 2;
-  let angleB;
-  let sampleTheta;
   const difficulty = gameState.difficulty;
-
   const easyDelta = Math.PI / 3 + Math.random() * Math.PI / 6;
   const mediumDelta = Math.PI / 4 + Math.random() * Math.PI / 6;
   const hardDelta = Math.PI / 6 + Math.random() * Math.PI / 10;
   const delta = difficulty === 'Hard' ? hardDelta : difficulty === 'Medium' ? mediumDelta : easyDelta;
 
-  if (gameState.currentTheoremType === 'semicircle') {
-    angleB = angleA + Math.PI;
-    sampleTheta = angleA + Math.PI * (difficulty === 'Hard' ? (0.15 + Math.random() * 0.7) : 0.35 + Math.random() * 0.3);
-  } else if (gameState.currentTheoremType === 'equalChord') {
-    angleB = angleA + delta;
+  gameState.pointA = createCirclePoint(angleA);
+
+  if (gameState.mode === 'semicircle') {
+    const angleB = angleA + Math.PI;
+    gameState.pointB = createCirclePoint(angleB);
+    const sampleTheta = angleA + Math.PI * (difficulty === 'Hard' ? (0.1 + Math.random() * 0.8) : 0.3 + Math.random() * 0.4);
+    gameState.pointX = createCirclePoint(sampleTheta).x;
+    gameState.pointY = createCirclePoint(sampleTheta).y;
+    gameState.targetAngle = Math.PI / 2;
+  } else if (gameState.mode === 'central') {
+    const angleB = angleA + delta;
+    gameState.pointB = createCirclePoint(angleB);
+    const centerAngle = calculateCentralAngle(gameState.pointA, gameState.pointB);
+    const sampleTheta = angleA + centerAngle / 4 + (difficulty === 'Hard' ? (Math.random() - 0.5) * centerAngle * 0.25 : 0);
+    const samplePoint = createCirclePoint(sampleTheta);
+    gameState.pointX = samplePoint.x;
+    gameState.pointY = samplePoint.y;
+    gameState.targetAngle = centerAngle / 2;
+  } else if (gameState.mode === 'tangentChord') {
+    const angleB = angleA + delta;
+    gameState.pointB = createCirclePoint(angleB);
+    const chordAngle = calculateInscribedAngle(angleA + delta / 2, gameState.pointA, gameState.pointB);
+    const sampleTheta = angleA + delta / 2 + (difficulty === 'Hard' ? (Math.random() - 0.5) * delta * 0.3 : 0);
+    const samplePoint = createCirclePoint(sampleTheta);
+    gameState.pointX = samplePoint.x;
+    gameState.pointY = samplePoint.y;
+    gameState.targetAngle = chordAngle;
+  } else if (gameState.mode === 'cyclicQuad') {
+    const angleB = angleA + delta;
+    const angleC = angleB + delta * 0.9;
+    gameState.pointB = createCirclePoint(angleB);
+    gameState.pointC = createCirclePoint(angleC);
+    const sampleTheta = angleA + delta * 1.5 + (difficulty === 'Hard' ? (Math.random() - 0.5) * delta * 0.5 : 0);
+    const samplePoint = createCirclePoint(sampleTheta);
+    gameState.pointX = samplePoint.x;
+    gameState.pointY = samplePoint.y;
+    gameState.targetAngle = Math.PI;
+  } else if (gameState.mode === 'equalChord') {
+    const angleB = angleA + delta;
+    gameState.pointB = createCirclePoint(angleB);
     const angleC = angleA + Math.PI / 2;
     const angleD = angleC + delta;
-    gameState.pointC = {
-      x: gameState.centerX + gameState.radius * Math.cos(angleC),
-      y: gameState.centerY + gameState.radius * Math.sin(angleC),
-      angle: angleC
-    };
-    gameState.pointD = {
-      x: gameState.centerX + gameState.radius * Math.cos(angleD),
-      y: gameState.centerY + gameState.radius * Math.sin(angleD),
-      angle: angleD
-    };
-    sampleTheta = angleA + delta / 2 + (difficulty === 'Hard' ? (Math.random() - 0.5) * delta * 0.7 : 0);
-  } else {
-    angleB = angleA + delta;
-    sampleTheta = angleA + delta / 2 + (difficulty === 'Hard' ? (Math.random() - 0.5) * delta * 0.6 : 0);
-  }
-
-  gameState.pointA = {
-    x: gameState.centerX + gameState.radius * Math.cos(angleA),
-    y: gameState.centerY + gameState.radius * Math.sin(angleA),
-    angle: angleA
-  };
-
-  gameState.pointB = {
-    x: gameState.centerX + gameState.radius * Math.cos(angleB),
-    y: gameState.centerY + gameState.radius * Math.sin(angleB),
-    angle: angleB
-  };
-
-  gameState.pointX = gameState.centerX + gameState.radius * Math.cos(sampleTheta);
-  gameState.pointY = gameState.centerY + gameState.radius * Math.sin(sampleTheta);
-
-  if (gameState.currentTheoremType === 'semicircle') {
-    gameState.targetAngle = Math.PI / 2;
-  } else if (gameState.currentTheoremType === 'central') {
-    gameState.targetAngle = calculateCentralAngle(gameState.pointA, gameState.pointB) / 2;
-  } else if (gameState.currentTheoremType === 'equalChord') {
+    gameState.pointC = createCirclePoint(angleC);
+    gameState.pointD = createCirclePoint(angleD);
+    const sampleTheta = angleA + delta / 2 + (difficulty === 'Hard' ? (Math.random() - 0.5) * delta * 0.7 : 0);
+    const samplePoint = createCirclePoint(sampleTheta);
+    gameState.pointX = samplePoint.x;
+    gameState.pointY = samplePoint.y;
     gameState.targetAngle = calculateInscribedAngle(sampleTheta, gameState.pointC, gameState.pointD);
   } else {
+    const angleB = angleA + delta;
+    gameState.pointB = createCirclePoint(angleB);
+    const sampleTheta = angleA + delta / 2 + (difficulty === 'Hard' ? (Math.random() - 0.5) * delta * 0.6 : 0);
+    const samplePoint = createCirclePoint(sampleTheta);
+    gameState.pointX = samplePoint.x;
+    gameState.pointY = samplePoint.y;
     gameState.targetAngle = calculateInscribedAngle(sampleTheta, gameState.pointA, gameState.pointB);
   }
 
@@ -377,13 +467,17 @@ function generateNewLevel() {
   document.getElementById('checkBtn').style.display = 'block';
   setTheoremTexts();
   resetTimer();
+  
+  // 初始化时更新角度显示
+  updateAngleDisplay();
 }
 
 function getCanvasCoordinates(clientX, clientY) {
   const rect = gameState.canvas.getBoundingClientRect();
+  // 由于我们已经在Canvas上下文中应用了缩放，所以直接使用CSS像素坐标
   return {
-    x: (clientX - rect.left) * (gameState.canvas.width / rect.width),
-    y: (clientY - rect.top) * (gameState.canvas.height / rect.height)
+    x: clientX - rect.left,
+    y: clientY - rect.top
   };
 }
 
@@ -402,20 +496,66 @@ function calculateInscribedAngle(theta, pointA, pointB) {
   const magA = Math.sqrt(vax * vax + vay * vay);
   const magB = Math.sqrt(vbx * vbx + vby * vby);
   if (magA === 0 || magB === 0) return 0;
-  const cosAngle = dotProduct / (magA * magB);
+  const cosAngle = dotProduct / (magA * magA > 0 && magB * magB > 0 ? magA * magB : 1);
   const clampedCos = Math.max(-1, Math.min(1, cosAngle));
   return Math.acos(clampedCos);
-}
-
-function selectRandomTheorem() {
-  const theoremKeys = Object.keys(THEOREM_DEFINITIONS);
-  return theoremKeys[Math.floor(Math.random() * theoremKeys.length)];
 }
 
 function calculateCentralAngle(pointA, pointB) {
   let diff = Math.abs(pointA.angle - pointB.angle);
   if (diff > Math.PI) diff = Math.PI * 2 - diff;
   return diff;
+}
+
+function calculateTangentAngle(theta, pointA, pointB) {
+  const point = {
+    x: gameState.centerX + gameState.radius * Math.cos(theta),
+    y: gameState.centerY + gameState.radius * Math.sin(theta)
+  };
+  const chordAngle = calculateInscribedAngle(theta, pointA, pointB);
+  const tangentDirection = { x: -(point.y - gameState.centerY), y: point.x - gameState.centerX };
+  const chordDirection = { x: pointB.x - point.x, y: pointB.y - point.y };
+  const dot = tangentDirection.x * chordDirection.x + tangentDirection.y * chordDirection.y;
+  const magT = Math.hypot(tangentDirection.x, tangentDirection.y);
+  const magC = Math.hypot(chordDirection.x, chordDirection.y);
+  if (magT === 0 || magC === 0) return 0;
+  const cosTheta = dot / (magT * magC);
+  const clampedCos = Math.max(-1, Math.min(1, cosTheta));
+  return Math.acos(clampedCos);
+}
+
+function calculateQuadrilateralAngles(theta, pointA, pointB, pointC) {
+  const point = {
+    x: gameState.centerX + gameState.radius * Math.cos(theta),
+    y: gameState.centerY + gameState.radius * Math.sin(theta)
+  };
+  const angleABC = calculateAngle(pointA, point, pointB);
+  const angleCDA = calculateAngle(pointC, point, pointA);
+  return { oppositeSum: angleABC + angleCDA, angleABC, angleCDA };
+}
+
+function calculateAngle(p1, p2, p3) {
+  const v1 = { x: p1.x - p2.x, y: p1.y - p2.y };
+  const v2 = { x: p3.x - p2.x, y: p3.y - p2.y };
+  const dot = v1.x * v2.x + v1.y * v2.y;
+  const mag1 = Math.hypot(v1.x, v1.y);
+  const mag2 = Math.hypot(v2.x, v2.y);
+  if (mag1 === 0 || mag2 === 0) return 0;
+  const cosVal = dot / (mag1 * mag2);
+  return Math.acos(Math.max(-1, Math.min(1, cosVal)));
+}
+
+function createCirclePoint(angle) {
+  return {
+    x: gameState.centerX + gameState.radius * Math.cos(angle),
+    y: gameState.centerY + gameState.radius * Math.sin(angle),
+    angle
+  };
+}
+
+function selectRandomTheorem() {
+  const theoremKeys = Object.keys(THEOREM_DEFINITIONS);
+  return theoremKeys[Math.floor(Math.random() * theoremKeys.length)];
 }
 
 function setTheoremTexts() {
@@ -549,10 +689,12 @@ function handleTimeOut() {
   gameState.levelActive = false;
   gameState.dragDisabled = true;
   const feedback = document.getElementById('feedbackBox');
-  feedback.textContent = '✗ Time is up! Try the next level.';
+  const lang = translations[gameState.currentLanguage];
+  feedback.textContent = lang.timeUp;
   feedback.className = 'feedback-box show wrong';
   document.getElementById('checkBtn').style.display = 'none';
   document.getElementById('nextBtn').style.display = 'block';
+  playSound('timeUp'); // 播放时间到音效
   startFeedbackAnimation(false);
 }
 
@@ -617,7 +759,7 @@ function draw() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  if (currentTheoremType === 'central') {
+  if (currentTheoremType === 'central' || currentTheoremType === 'semicircle' || currentTheoremType === 'tangentChord' || currentTheoremType === 'cyclicQuad') {
     ctx.strokeStyle = '#2c3e50';
     ctx.lineWidth = 1.2;
     ctx.setLineDash([4, 4]);
@@ -630,6 +772,24 @@ function draw() {
     ctx.lineTo(pointB.x, pointB.y);
     ctx.stroke();
     ctx.setLineDash([]);
+  }
+
+  if (currentTheoremType === 'tangentChord') {
+    const theta = getThetaFromPoint(pointX, pointY);
+    const tangentStart = {
+      x: pointX + (pointY - centerY) * 0.5,
+      y: pointY - (pointX - centerX) * 0.5
+    };
+    const tangentEnd = {
+      x: pointX - (pointY - centerY) * 0.5,
+      y: pointY + (pointX - centerX) * 0.5
+    };
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(tangentStart.x, tangentStart.y);
+    ctx.lineTo(tangentEnd.x, tangentEnd.y);
+    ctx.stroke();
   }
 
   if (currentTheoremType === 'equalChord' && pointC && pointD) {
@@ -660,9 +820,30 @@ function draw() {
   }
   const theta = getThetaFromPoint(pointX, pointY);
   const angle = (theta * 180 / Math.PI + 360) % 360;
-  gameState.selectedAngle = calculateInscribedAngle(theta, pointA, pointB);
+  gameState.selectedAngle = calculateModeAngle(theta);
   drawFeedbackOverlay();
   document.getElementById('positionInfo').textContent = `X: ${pointX.toFixed(0)}, Y: ${pointY.toFixed(0)} | Angle: ${angle.toFixed(1)}° | Selected: ${(gameState.selectedAngle * 180 / Math.PI).toFixed(1)}°`;
+}
+
+function calculateModeAngle(theta) {
+  const { pointA, pointB, pointC, mode } = gameState;
+  if (mode === 'central') {
+    return calculateInscribedAngle(theta, pointA, pointB);
+  }
+  if (mode === 'tangentChord') {
+    return calculateTangentAngle(theta, pointA, pointB);
+  }
+  if (mode === 'cyclicQuad') {
+    const quad = calculateQuadrilateralAngles(theta, pointA, pointB, pointC);
+    return quad.oppositeSum;
+  }
+  if (mode === 'semicircle') {
+    return calculateInscribedAngle(theta, pointA, pointB);
+  }
+  if (mode === 'equalChord') {
+    return calculateInscribedAngle(theta, pointA, pointB);
+  }
+  return calculateInscribedAngle(theta, pointA, pointB);
 }
 
 function drawPoint(x, y, color, label, radius) {
@@ -706,6 +887,7 @@ function handleMouseMove(e) {
 
 function handleMouseUp() {
   gameState.draggingPoint = false;
+  gameState.draggingPointType = null;
 }
 
 function handleTouchStart(e) {
@@ -725,13 +907,30 @@ function handleTouchMove(e) {
 
 function handleTouchEnd() {
   gameState.draggingPoint = false;
+  gameState.draggingPointType = null;
 }
 
 function justifyDragStart(x, y) {
   if (gameState.dragDisabled) return;
-  const dist = Math.hypot(x - gameState.pointX, y - gameState.pointY);
-  if (dist < 25) {
+  
+  // 检查是否点击了点A、B或X
+  const distA = Math.hypot(x - gameState.pointA.x, y - gameState.pointA.y);
+  const distB = Math.hypot(x - gameState.pointB.x, y - gameState.pointB.y);
+  const distX = Math.hypot(x - gameState.pointX, y - gameState.pointY);
+  const hitRadius = 20; // 点击判定半径
+  
+  if (distA < hitRadius) {
     gameState.draggingPoint = true;
+    gameState.draggingPointType = 'A';
+  } else if (distB < hitRadius) {
+    gameState.draggingPoint = true;
+    gameState.draggingPointType = 'B';
+  } else if (distX < hitRadius) {
+    gameState.draggingPoint = true;
+    gameState.draggingPointType = 'X';
+  } else {
+    gameState.draggingPoint = false;
+    gameState.draggingPointType = null;
   }
 }
 
@@ -739,46 +938,126 @@ function constrainPointToCircle(x, y) {
   const dx = x - gameState.centerX;
   const dy = y - gameState.centerY;
   const dist = Math.hypot(dx, dy);
-  if (dist > gameState.radius) {
-    gameState.pointX = gameState.centerX + (dx / dist) * gameState.radius;
-    gameState.pointY = gameState.centerY + (dy / dist) * gameState.radius;
-  } else {
-    gameState.pointX = x;
-    gameState.pointY = y;
+  
+  // 将点约束到圆上
+  const constrainedX = gameState.centerX + (dx / dist) * gameState.radius;
+  const constrainedY = gameState.centerY + (dy / dist) * gameState.radius;
+  
+  // 根据拖动的点类型更新相应的坐标
+  if (gameState.draggingPointType === 'A') {
+    gameState.pointA = { x: constrainedX, y: constrainedY, angle: getThetaFromPoint(constrainedX, constrainedY) };
+  } else if (gameState.draggingPointType === 'B') {
+    gameState.pointB = { x: constrainedX, y: constrainedY, angle: getThetaFromPoint(constrainedX, constrainedY) };
+  } else if (gameState.draggingPointType === 'X') {
+    gameState.pointX = constrainedX;
+    gameState.pointY = constrainedY;
+  }
+  
+  // 更新圆心角和圆周角
+  updateAngleDisplay();
+}
+
+function updateAngleDisplay() {
+  const { pointA, pointB, pointX, pointY, centerX, centerY, radius } = gameState;
+  
+  // 计算圆心角 (central angle) - 点A和点B与圆心连线的夹角
+  const centralAngle = calculateCentralAngle(pointA, pointB);
+  gameState.centralAngle = centralAngle;
+  
+  // 计算圆周角 (inscribed angle) - 点X相对于点A和点B的角度
+  const thetaX = getThetaFromPoint(pointX, pointY);
+  const inscribedAngle = calculateInscribedAngle(thetaX, pointA, pointB);
+  gameState.inscribedAngle = inscribedAngle;
+  
+  // 更新显示
+  const centralDisplay = document.getElementById('centralAngleDisplay');
+  const inscribedDisplay = document.getElementById('inscribedAngleDisplay');
+  const verificationResult = document.getElementById('verificationResult');
+  
+  if (centralDisplay) {
+    centralDisplay.textContent = (centralAngle * 180 / Math.PI).toFixed(1) + '°';
+  }
+  
+  if (inscribedDisplay) {
+    inscribedDisplay.textContent = (inscribedAngle * 180 / Math.PI).toFixed(1) + '°';
+  }
+  
+  // 验证圆心角 = 2 × 圆周角
+  if (verificationResult) {
+    const expectedCentral = 2 * inscribedAngle;
+    const diff = Math.abs(centralAngle - expectedCentral);
+    const isVerified = diff < 0.1; // 允许小误差
+    const lang = translations[gameState.currentLanguage];
+    
+    if (isVerified) {
+      verificationResult.textContent = lang.verificationPass;
+      verificationResult.style.color = '#27ae60';
+    } else {
+      verificationResult.textContent = lang.verificationFail + (expectedCentral * 180 / Math.PI).toFixed(1) + '°';
+      verificationResult.style.color = '#e74c3c';
+    }
+  }
+  
+  // 同时更新位置信息
+  const positionInfo = document.getElementById('positionInfo');
+  if (positionInfo) {
+    const angle = (thetaX * 180 / Math.PI + 360) % 360;
+    gameState.selectedAngle = inscribedAngle;
+    positionInfo.textContent = `X: ${pointX.toFixed(0)}, Y: ${pointY.toFixed(0)} | Angle: ${angle.toFixed(1)}° | Selected: ${(inscribedAngle * 180 / Math.PI).toFixed(1)}°`;
   }
 }
 
 function checkAnswer() {
   if (!gameState.levelActive) return;
-  const angleDiff = Math.abs(gameState.selectedAngle - gameState.targetAngle);
-  const isCorrect = angleDiff < gameState.tolerance * Math.PI / 180;
+  const { mode, selectedAngle, targetAngle, tolerance } = gameState;
+  let angleDiff = 0;
+  let isCorrect = false;
+
+  if (mode === 'central') {
+    angleDiff = Math.abs(selectedAngle - targetAngle);
+    isCorrect = angleDiff < tolerance * Math.PI / 180;
+  } else if (mode === 'tangentChord') {
+    angleDiff = Math.abs(selectedAngle - targetAngle);
+    isCorrect = angleDiff < tolerance * Math.PI / 180;
+  } else if (mode === 'cyclicQuad') {
+    angleDiff = Math.abs(selectedAngle - targetAngle);
+    isCorrect = angleDiff < tolerance * Math.PI / 180;
+  } else if (mode === 'semicircle') {
+    angleDiff = Math.abs(selectedAngle - Math.PI / 2);
+    isCorrect = angleDiff < tolerance * Math.PI / 180;
+  } else {
+    angleDiff = Math.abs(selectedAngle - targetAngle);
+    isCorrect = angleDiff < tolerance * Math.PI / 180;
+  }
+
   const feedback = document.getElementById('feedbackBox');
+  const lang = translations[gameState.currentLanguage];
   let coinReward = 0;
   if (isCorrect) {
     gameState.levelActive = false;
     gameState.dragDisabled = true;
     clearTimer();
     gameState.score++;
-    // Coin logic
     coinReward = 10;
-    // Fast answer bonus (optional):
     if (gameState.timeRemaining > Math.max(3, gameState.timeLimit * 0.5)) {
       coinReward += 5;
     }
     addCoins(coinReward);
     checkUnlocks();
-    feedback.textContent = '✓ Correct! Great job!';
+    feedback.textContent = lang.correct;
     feedback.className = 'feedback-box show correct';
     document.getElementById('checkBtn').style.display = 'none';
     document.getElementById('nextBtn').style.display = 'block';
     document.getElementById('scoreDisplay').textContent = gameState.score;
+    playSound('correct'); // 播放正确音效
     startFeedbackAnimation(true);
   } else {
     coinReward = 2;
     addCoins(coinReward);
     checkUnlocks();
-    feedback.textContent = `✗ Not quite. Try again! (Difference: ${(angleDiff * 180 / Math.PI).toFixed(1)}°)`;
+    feedback.textContent = `${lang.incorrect}${(angleDiff * 180 / Math.PI).toFixed(1)}°)`;
     feedback.className = 'feedback-box show wrong';
+    playSound('wrong'); // 播放错误音效
     startFeedbackAnimation(false);
   }
 }
@@ -786,6 +1065,7 @@ function checkAnswer() {
 function nextLevel() {
   gameState.currentLevel++;
   document.getElementById('levelDisplay').textContent = gameState.currentLevel;
+  playSound('levelComplete'); // 播放关卡完成音效
   generateNewLevel();
   draw();
 }
@@ -857,7 +1137,38 @@ const translations = {
     next: '→ Next Level',
     restart: '↺ Restart',
     canvasTitle: 'Circle Canvas',
-    positionLabel: 'Point Position:'
+    positionLabel: 'Point Position:',
+    timeRemaining: 'Time Remaining:',
+    coins: 'Coins:',
+    leaderboard: '📋 Leaderboard',
+    leaderboardBtn: '📋 Show Leaderboard',
+    leaderboardHideBtn: '📋 Hide Leaderboard',
+    noScores: 'No scores yet.',
+    timeUp: '✗ Time is up! Try the next level.',
+    correct: '✓ Correct! Great job!',
+    incorrect: '✗ Not quite. Try again! (Difference: ',
+    difficulty: 'Difficulty:',
+    easy: 'Easy',
+    medium: 'Medium',
+    hard: 'Hard',
+    accessibility: 'Accessibility',
+    colorSafe: 'Color Safe',
+    fontSize: 'Font Size',
+    small: 'Small',
+    normal: 'Normal',
+    large: 'Large',
+    themeDay: 'Switch to day mode',
+    themeNight: 'Switch to night mode',
+    langToggle: '中文',
+    breadcrumb: 'Homepage',
+    gameTitle: 'Inscribed Angles Game',
+    navHome: 'Homepage',
+    navQuiz: 'Quiz',
+    navGame: 'Game',
+    centralAngle: 'Central Angle',
+    inscribedAngle: 'Inscribed Angle',
+    verificationPass: '✓ Verified',
+    verificationFail: '✗ Calc: '
   },
   cn: {
     objective: '🎯 目标',
@@ -874,7 +1185,38 @@ const translations = {
     next: '→ 下一关',
     restart: '↺ 重新开始',
     canvasTitle: '圆形画布',
-    positionLabel: '点的位置:'
+    positionLabel: '点的位置:',
+    timeRemaining: '剩余时间:',
+    coins: ' coins:',
+    leaderboard: '📋 排行榜',
+    leaderboardBtn: '📋 显示排行榜',
+    leaderboardHideBtn: '📋 隐藏排行榜',
+    noScores: '暂无分数。',
+    timeUp: '✗ 时间到！尝试下一关。',
+    correct: '✓ 正确！做得好！',
+    incorrect: '✗ 不太对。再试一次！（差异：',
+    difficulty: '难度:',
+    easy: '简单',
+    medium: '中等',
+    hard: '困难',
+    accessibility: '无障碍',
+    colorSafe: '色盲友好',
+    fontSize: '字体大小',
+    small: '小',
+    normal: '正常',
+    large: '大',
+    themeDay: '切换到日间模式',
+    themeNight: '切换到夜间模式',
+    langToggle: 'EN',
+    breadcrumb: '首页',
+    gameTitle: '圆周角游戏',
+    navHome: '首页',
+    navQuiz: '测试',
+    navGame: '游戏',
+    centralAngle: '圆心角',
+    inscribedAngle: '圆周角',
+    verificationPass: '✓ 验证通过',
+    verificationFail: '✗ 计算: '
   }
 };
 
@@ -886,20 +1228,159 @@ langToggle.addEventListener('click', () => {
 
 function updateLanguageDisplay() {
   const lang = translations[gameState.currentLanguage];
-  langToggle.textContent = gameState.currentLanguage === 'en' ? '中文' : 'EN';
-  document.querySelectorAll('.card-title')[0].textContent = lang.objective;
-  document.querySelectorAll('.card-content')[0].textContent = lang.objectiveText;
-  document.querySelectorAll('.card-title')[1].textContent = lang.progress;
-  document.querySelectorAll('.stat-label')[0].textContent = lang.level;
-  document.querySelectorAll('.stat-label')[1].textContent = lang.score;
-  document.querySelectorAll('.stat-label')[2].textContent = lang.target;
-  document.querySelectorAll('.card-title')[2].textContent = lang.theorem;
-  document.querySelectorAll('.card-title')[3].textContent = lang.hint;
+  
+  // 更新语言切换按钮
+  langToggle.textContent = lang.langToggle;
+  
+  // 更新页面标题
+  document.querySelector('.page-title').textContent = lang.gameTitle;
+  
+  // 更新面包屑导航
+  const breadcrumb = document.querySelector('.breadcrumb');
+  if (breadcrumb) {
+    breadcrumb.innerHTML = `<a href="../HomePage/index.html">${lang.breadcrumb}</a> &gt;`;
+  }
+  
+  // 更新导航栏链接
+  const navLinks = document.querySelectorAll('.nav-menu a');
+  if (navLinks.length >= 3) {
+    navLinks[0].textContent = lang.navHome;
+    navLinks[1].textContent = lang.navQuiz;
+    navLinks[2].textContent = lang.navGame;
+  }
+  
+  // 更新目标卡片
+  const infoCards = document.querySelectorAll('.info-card');
+  if (infoCards.length >= 4) {
+    // 目标卡片
+    const objectiveCard = infoCards[0];
+    const objectiveTitle = objectiveCard.querySelector('.card-title');
+    const objectiveContent = objectiveCard.querySelector('.card-content');
+    if (objectiveTitle) objectiveTitle.textContent = lang.objective;
+    if (objectiveContent) objectiveContent.textContent = lang.objectiveText;
+    
+    // 进度卡片
+    const progressCard = infoCards[1];
+    const progressTitle = progressCard.querySelector('.card-title');
+    if (progressTitle) progressTitle.textContent = lang.progress;
+    
+    const statLabels = progressCard.querySelectorAll('.stat-label');
+    if (statLabels.length >= 3) {
+      statLabels[0].textContent = lang.level;
+      statLabels[1].textContent = lang.score;
+      statLabels[2].textContent = lang.target;
+    }
+    
+    // 定理卡片
+    const theoremCard = infoCards[2];
+    const theoremTitle = theoremCard.querySelector('.card-title');
+    if (theoremTitle) theoremTitle.textContent = lang.theorem;
+    
+    // 提示卡片
+    const hintCard = infoCards[3];
+    const hintTitle = hintCard.querySelector('.card-title');
+    if (hintTitle) hintTitle.textContent = lang.hint;
+  }
+  
+  // 更新按钮文本
   document.getElementById('checkBtn').textContent = lang.check;
   document.getElementById('nextBtn').textContent = lang.next;
   document.getElementById('restartBtn').textContent = lang.restart;
+  
+  // 更新画布标题
   document.querySelector('.canvas-title').textContent = lang.canvasTitle;
+  
+  // 更新位置显示标签
+  const positionDisplay = document.querySelector('.position-display');
+  if (positionDisplay) {
+    const positionText = positionDisplay.querySelector('strong');
+    if (positionText) {
+      positionText.textContent = lang.positionLabel;
+    }
+  }
+  
+  // 更新难度控制
+  const difficultyControl = document.getElementById('difficultyControl');
+  if (difficultyControl) {
+    const difficultyLabel = difficultyControl.querySelector('span');
+    if (difficultyLabel) {
+      difficultyLabel.textContent = lang.difficulty + ':';
+    }
+    const difficultyBtn = difficultyControl.querySelector('button');
+    if (difficultyBtn) {
+      const currentDifficulty = gameState.difficulty;
+      if (currentDifficulty === 'Easy') {
+        difficultyBtn.textContent = lang.easy;
+      } else if (currentDifficulty === 'Medium') {
+        difficultyBtn.textContent = lang.medium;
+      } else if (currentDifficulty === 'Hard') {
+        difficultyBtn.textContent = lang.hard;
+      }
+    }
+  }
+  
+  // 更新无障碍控制
+  const a11yToggleBtn = document.getElementById('a11yToggleBtn');
+  if (a11yToggleBtn) {
+    a11yToggleBtn.textContent = lang.accessibility;
+  }
+  
+  const colorSafeToggle = document.getElementById('colorSafeToggle');
+  if (colorSafeToggle) {
+    colorSafeToggle.textContent = lang.colorSafe;
+  }
+  
+  // 更新主题切换按钮标题
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    themeToggle.title = isDarkMode ? lang.themeDay : lang.themeNight;
+  }
+  
+  // 更新排行榜相关文本
+  const leaderboardToggleBtn = document.getElementById('leaderboardToggleBtn');
+  if (leaderboardToggleBtn) {
+    leaderboardToggleBtn.textContent = lang.leaderboardBtn;
+  }
+  
+  // 更新定理文本
   setTheoremTexts();
+  
+  // 更新角度显示区域文本
+  const angleLabels = document.querySelectorAll('.angle-label');
+  if (angleLabels.length >= 2) {
+    angleLabels[0].textContent = lang.centralAngle + ':';
+    angleLabels[1].textContent = lang.inscribedAngle + ':';
+  }
+  
+  const verificationText = document.getElementById('verificationText');
+  if (verificationText) {
+    verificationText.textContent = lang.centralAngle + ' = 2 × ' + lang.inscribedAngle;
+  }
+  
+  // 更新验证结果文本
+  const verificationResult = document.getElementById('verificationResult');
+  if (verificationResult && verificationResult.textContent) {
+    // 检查验证结果是否包含英文或中文的计算文本
+    if (verificationResult.textContent.includes('Calc:') || verificationResult.textContent.includes('计算:')) {
+      // 无论当前语言是什么，都重新计算并更新验证结果
+      const inscribedAngle = gameState.inscribedAngle;
+      const expectedCentral = 2 * inscribedAngle;
+      verificationResult.textContent = lang.verificationFail + (expectedCentral * 180 / Math.PI).toFixed(1) + '°';
+    }
+  }
+  
+  // 更新反馈框中的时间到消息
+  const feedback = document.getElementById('feedbackBox');
+  if (feedback && feedback.textContent) {
+    // 检查反馈框是否包含时间到消息
+    const enTimeUp = translations.en.timeUp;
+    const cnTimeUp = translations.cn.timeUp;
+    if (feedback.textContent === enTimeUp || feedback.textContent === cnTimeUp) {
+      // 如果是时间到消息，更新为当前语言的版本
+      feedback.textContent = lang.timeUp;
+    }
+  }
 }
 
 // =====================
@@ -998,6 +1479,7 @@ function applyFontScale(scale) {
 
 window.addEventListener('load', () => {
   setupAccessibilityControls();
+  preloadSounds(); // 预加载音效
   initCanvas();
   updateLanguageDisplay();
   updateCoinDisplay();

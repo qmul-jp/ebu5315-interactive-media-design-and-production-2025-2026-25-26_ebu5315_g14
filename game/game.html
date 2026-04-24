@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Navigation -->
+    <!-- 头部导航栏 -->
     <nav class="navbar">
         <a href="../HomePage/index.html" class="logo brand-logo" aria-label="CircleLab homepage">
             <span class="brand-lockup" aria-hidden="true">
@@ -18,12 +18,14 @@
         </a>
         <ul class="nav-menu">
             <li><a href="../HomePage/index.html" class="nav-link">Homepage</a></li>
-            <li><a href="../quiz.html" class="nav-link">Quiz</a></li>
+            <li><a href="../Quiz/quiz.html" class="nav-link">Quiz</a></li>
             <li><a href="game.html" class="nav-link active">Game</a></li>
         </ul>
         <div class="nav-right">
-            <button class="lang-btn" id="langToggle">中文</button>
-            <button class="theme-btn" id="themeToggle" title="切换日夜模式"><i class="fas fa-moon"></i></button>
+            <!-- 中英双语切换 -->
+            <button id="langToggle" class="lang-btn">中文</button>
+            <!-- 夜间/日间模式切换按钮 -->
+            <button id="themeToggle" class="theme-btn" title="切换日夜模式"><i class="fas fa-moon"></i></button>
             <button id="a11yToggleBtn" class="a11y-toggle-btn" type="button" aria-expanded="false">Accessibility</button>
             <div id="a11yPanel" class="a11y-panel" aria-label="Accessibility controls">
                 <div class="a11y-controls">
@@ -36,7 +38,10 @@
         </div>
     </nav>
 
-    <div class="breadcrumb"><a href="../HomePage/index.html">Homepage</a> &gt; <span>Game</span></div>
+    <!-- 面包屑导航 -->
+    <div class="breadcrumb" id="breadcrumb">
+        <a href="../HomePage/index.html">Homepage</a> >
+    </div>
 
     <!-- Main Game Content -->
     <main class="game-page container">
@@ -49,6 +54,21 @@
                 <canvas id="gameCanvas" width="500" height="500"></canvas>
                 <div class="position-display">
                     <strong>Point Position:</strong> <span id="positionInfo">X: 0, Y: 0 | Angle: 0°</span>
+                </div>
+                <!-- 圆心角与圆周角实时显示 -->
+                <div class="angle-display">
+                    <div class="angle-item">
+                        <span class="angle-label">圆心角 :</span>
+                        <span class="angle-value" id="centralAngleDisplay">0°</span>
+                    </div>
+                    <div class="angle-item">
+                        <span class="angle-label">圆周角 :</span>
+                        <span class="angle-value" id="inscribedAngleDisplay">0°</span>
+                    </div>
+                    <div class="angle-verification">
+                        <span class="verification-text" id="verificationText">圆心角 = 2 × 圆周角</span>
+                        <span class="verification-result" id="verificationResult"></span>
+                    </div>
                 </div>
             </div>
 

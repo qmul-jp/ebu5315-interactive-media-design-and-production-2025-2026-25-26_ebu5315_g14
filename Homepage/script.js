@@ -658,10 +658,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!optOutAds || !optOutAnalytics || !hideAds || !savePolicyBtn || !policyStatus) return;
 
-        optOutAds.checked = localStorage.getItem('optOutAds') === 'true';
-        optOutAnalytics.checked = localStorage.getItem('optOutAnalytics') === 'true';
-        hideAds.checked = localStorage.getItem('hideAds') === 'true';
-        if (adCard) adCard.style.display = hideAds.checked ? 'none' : '';
+        // 第一次打开网页时默认全不勾选
+        optOutAds.checked = false;
+        optOutAnalytics.checked = false;
+        hideAds.checked = false;
+        if (adCard) adCard.style.display = '';
 
         savePolicyBtn.addEventListener('click', () => {
             localStorage.setItem('optOutAds', String(optOutAds.checked));

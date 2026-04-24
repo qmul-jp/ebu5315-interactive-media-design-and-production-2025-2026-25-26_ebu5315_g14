@@ -211,6 +211,7 @@ body {
 
 .breadcrumb a:hover {
     color: #374151;
+    text-decoration: none;
 }
 
 /* 英雄区标题 */
@@ -504,7 +505,7 @@ body.dark .theorem-btn:hover {
     margin-bottom: 20px;
     font-size: 20px;
     color: #333;
-    border-bottom: 2px solid #3b82f6;
+    border-bottom: 2px solid #fa8df3;
     padding-bottom: 12px;
 }
 
@@ -517,13 +518,13 @@ body.dark .theorem-btn:hover {
 .usp-item {
     background: #ffffff;
     padding: 14px 16px;
-    border-left: 4px solid #3b82f6;
+    border-left: 4px solid #fa8df3;
     border-radius: 4px;
     transition: all 0.2s ease;
 }
 
 .usp-item i {
-    color: #3b82f6;
+    color: #fa8df3;
     font-size: 16px;
     margin-right: 10px;
 }
@@ -1409,23 +1410,7 @@ body.dark-mode .action-card[data-target]:hover {
     padding: 10px 14px;
 }
 
-.breadcrumb {
-    padding: 6px 24px;
-    margin: 0;
-    font-size: 0.9rem;
-    color: #6b7280;
-    background: transparent;
-    border-bottom: none;
-}
 
-.breadcrumb a {
-    color: #334155;
-    text-decoration: none;
-}
-
-.breadcrumb a:hover {
-    text-decoration: underline;
-}
 
 .quiz-container {
     max-width: 980px;

@@ -338,7 +338,19 @@ const translations = {
     incorrect: "Incorrect",
     correctAnswer: "Correct answer:",
     explanation: "Explanation:",
-    aiSuggestion: "AI Suggestion: Based on your performance, try "
+    aiSuggestion: "AI Suggestion: Based on your performance, try ",
+    // 页面标题
+    pageTitle: "Circle Geometry Quiz",
+    pageSubtitle: "Choose a difficulty and test your understanding with instant feedback.",
+    // 隐私政策相关
+    privacy: "Privacy",
+    policyTitle: "Privacy & Preference",
+    policySummary: "We only store local preferences (language, theme, accessibility, consent choices) in your browser and do not send personal data to a server.",
+    optOutAds: "Opt out of personalized ads",
+    optOutAnalytics: "Opt out of analytics cookies",
+    hideAds: "Hide ad banner",
+    savePreferences: "Save Preferences",
+    preferencesSaved: "Preferences saved!"
   },
   cn: {
     logo: "CircleLab",
@@ -365,7 +377,19 @@ const translations = {
     incorrect: "回答错误",
     correctAnswer: "正确答案：",
     explanation: "解析：",
-    aiSuggestion: "AI建议：根据您的表现，下次试试"
+    aiSuggestion: "AI建议：根据您的表现，下次试试",
+    // 页面标题
+    pageTitle: "圆几何测试",
+    pageSubtitle: "选择难度并通过即时反馈测试您的理解。",
+    // 隐私政策相关
+    privacy: "隐私",
+    policyTitle: "隐私与偏好设置",
+    policySummary: "我们仅在您的浏览器中存储本地偏好设置（语言、主题、无障碍、同意选择），不会将个人数据发送到服务器。",
+    optOutAds: "选择退出个性化广告",
+    optOutAnalytics: "选择退出分析Cookie",
+    hideAds: "隐藏广告横幅",
+    savePreferences: "保存偏好设置",
+    preferencesSaved: "偏好设置已保存！"
   }
 };
 
@@ -702,6 +726,12 @@ function showDifficultySelector() {
   optionsContainerEl.style.display = 'none';
   navButtonsEl.style.display = 'none';
   
+  // 隐藏反馈区域
+  const feedbackEl = document.getElementById('feedback-area');
+  if (feedbackEl) {
+    feedbackEl.style.display = 'none';
+  }
+  
   // 重置当前测验状态
   currentQuizSet = [];
   currentQuestion = 0;
@@ -774,8 +804,7 @@ function updateLanguageText() {
   navGameEl.textContent = t.navGame;
   langToggle.textContent = t.langToggle;
   if (breadcrumbEl) {
-    const homeLabel = currentLang === 'en' ? 'Homepage' : '首页';
-    breadcrumbEl.innerHTML = `<a href="../Homepage/index.html">${homeLabel}</a> &gt; ${t.navQuiz}`;
+    breadcrumbEl.innerHTML = `<a href="../HomePage/index.html">${t.breadcrumb}</a> &gt;`;
   }
   prevBtn.textContent = t.prevBtn;
 
@@ -796,6 +825,55 @@ function updateLanguageText() {
   // 主题按钮标题
   const isDarkMode = document.body.classList.contains('dark-mode');
   themeToggle.title = isDarkMode ? t.themeNight : t.themeDay;
+  
+  // 页面标题和副标题
+  const pageTitle = document.querySelector('.hero h1');
+  const pageSubtitle = document.querySelector('.hero p');
+  
+  if (pageTitle) {
+    pageTitle.textContent = t.pageTitle;
+  }
+  
+  if (pageSubtitle) {
+    pageSubtitle.textContent = t.pageSubtitle;
+  }
+  
+  // 隐私政策相关文本
+  const openPolicyModalBtn = document.getElementById('openPolicyModalBtn');
+  const policyTitle = document.getElementById('policyTitle');
+  const policySummary = document.getElementById('policySummary');
+  const optOutAdsLabel = document.getElementById('optOutAdsLabel');
+  const optOutAnalyticsLabel = document.getElementById('optOutAnalyticsLabel');
+  const hideAdsLabel = document.getElementById('hideAdsLabel');
+  const savePolicyBtn = document.getElementById('savePolicyBtn');
+  
+  if (openPolicyModalBtn) {
+    openPolicyModalBtn.textContent = t.privacy;
+  }
+  
+  if (policyTitle) {
+    policyTitle.textContent = t.policyTitle;
+  }
+  
+  if (policySummary) {
+    policySummary.textContent = t.policySummary;
+  }
+  
+  if (optOutAdsLabel) {
+    optOutAdsLabel.textContent = t.optOutAds;
+  }
+  
+  if (optOutAnalyticsLabel) {
+    optOutAnalyticsLabel.textContent = t.optOutAnalytics;
+  }
+  
+  if (hideAdsLabel) {
+    hideAdsLabel.textContent = t.hideAds;
+  }
+  
+  if (savePolicyBtn) {
+    savePolicyBtn.textContent = t.savePreferences;
+  }
   
   // 如果正在进行测验，更新测验相关文本
   if (currentQuizSet.length > 0) {
@@ -1109,23 +1187,25 @@ function nextQuestion() {
     updateNavButtons();
   } else {
     // 完成测验
-    calculateScore();
-    const totalPossible = currentQuizSet.length * difficultyScores[selectedDifficulty];
-    const finalScore = `${score}/${totalPossible}`;
-    const t = translations[currentLang];
-    
-    // 获取AI建议
-    const aiSuggestion = showAIDifficultySuggestion();
-    const completionMessage = aiSuggestion 
-      ? `${t.quizComplete}${finalScore}\n\n${aiSuggestion}`
-      : `${t.quizComplete}${finalScore}`;
-    
-    alert(completionMessage);
-    
-    setTimeout(() => {
-      showDifficultySelector();
-      updateLanguageText();
-    }, 1000);
+    if (confirm(currentLang === 'en' ? 'Are you sure you want to submit the quiz?' : '确定要提交测验吗？')) {
+      calculateScore();
+      const totalPossible = currentQuizSet.length * difficultyScores[selectedDifficulty];
+      const finalScore = `${score}/${totalPossible}`;
+      const t = translations[currentLang];
+      
+      // 获取AI建议
+      const aiSuggestion = showAIDifficultySuggestion();
+      const completionMessage = aiSuggestion 
+        ? `${t.quizComplete}${finalScore}\n\n${aiSuggestion}`
+        : `${t.quizComplete}${finalScore}`;
+      
+      alert(completionMessage);
+      
+      setTimeout(() => {
+        showDifficultySelector();
+        updateLanguageText();
+      }, 1000);
+    }
   }
 }
 
@@ -1154,6 +1234,34 @@ function setupEventListeners() {
   
   langToggle.addEventListener('click', toggleLanguage);
   themeToggle.addEventListener('click', toggleTheme);
+  
+  // 隐私政策弹框事件监听器
+  const openPolicyModalBtn = document.getElementById('openPolicyModalBtn');
+  const policyModal = document.getElementById('policyModal');
+  const policyModalCloseBtn = document.getElementById('policyModalCloseBtn');
+  const savePolicyBtn = document.getElementById('savePolicyBtn');
+  
+  if (openPolicyModalBtn && policyModal) {
+    openPolicyModalBtn.addEventListener('click', () => policyModal.classList.remove('hidden'));
+  }
+  
+  if (policyModalCloseBtn && policyModal) {
+    policyModalCloseBtn.addEventListener('click', () => policyModal.classList.add('hidden'));
+  }
+  
+  if (savePolicyBtn) {
+    savePolicyBtn.addEventListener('click', function() {
+      const statusEl = document.getElementById('policyStatus');
+      if (statusEl) {
+        const t = translations[currentLang];
+        statusEl.textContent = t.preferencesSaved;
+        setTimeout(() => {
+          if (policyModal) policyModal.classList.add('hidden');
+          if (statusEl) statusEl.textContent = '';
+        }, 1000);
+      }
+    });
+  }
   
   console.log("Event listeners set up successfully");
 }
@@ -1222,9 +1330,3 @@ document.addEventListener('DOMContentLoaded', function() {
     alert("初始化出错，请刷新页面重试。");
   }
 });
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}

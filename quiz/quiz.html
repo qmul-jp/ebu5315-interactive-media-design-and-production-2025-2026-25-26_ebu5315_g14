@@ -1,79 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CircleLab - Circle Geometry Quiz</title>
-  <link rel="stylesheet" href="quiz.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CircleLab - Circle Geometry Quiz</title>
+    <!-- 外部CSS文件引入 -->
+    <link rel="stylesheet" href="quiz.css">
+    <!-- 引入字体图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <nav class="navbar">
-    <a href="../Homepage/index.html" class="logo brand-logo" aria-label="CircleLab homepage">
-      <span class="brand-lockup" aria-hidden="true">
-        <span class="brand-mark"></span>
-        <span class="brand-text" id="logoImg">CircleLab</span>
-      </span>
-    </a>
-    <ul class="nav-menu">
-      <li><a href="../Homepage/index.html" class="nav-link" id="navHome">Homepage</a></li>
-      <li><a href="quiz.html" class="nav-link active" id="navQuiz">Quiz</a></li>
-      <li><a href="../Game/game.html" class="nav-link" id="navGame">Game</a></li>
-    </ul>
-    <div class="nav-right">
-      <button class="lang-btn" id="langToggle">中文</button>
-      <button class="theme-btn" id="themeToggle" title="Toggle day/night mode"><i class="fas fa-moon"></i></button>
-      <button id="a11yToggleBtn" class="a11y-toggle-btn" type="button" aria-expanded="false">Accessibility</button>
-      <div id="a11yPanel" class="a11y-panel" aria-label="Accessibility controls">
-        <div class="a11y-controls">
-          <button id="fontDownBtn" class="a11y-btn" type="button">A-</button>
-          <button id="fontResetBtn" class="a11y-btn" type="button">A</button>
-          <button id="fontUpBtn" class="a11y-btn" type="button">A+</button>
-          <button id="colorSafeToggle" class="a11y-btn" type="button">Color Safe</button>
+    <!-- 头部导航栏 -->
+    <nav class="navbar">
+        <a href="../HomePage/index.html" class="logo brand-logo" aria-label="CircleLab homepage">
+            <span class="brand-lockup" aria-hidden="true">
+                <span class="brand-mark"></span>
+                <span class="brand-text" id="logoImg">CircleLab</span>
+            </span>
+        </a>
+        <ul class="nav-menu">
+            <li><a href="../HomePage/index.html" class="nav-link" id="navHome">Homepage</a></li>
+            <li><a href="quiz.html" class="nav-link active" id="navQuiz">Quiz</a></li>
+            <li><a href="../Game/game.html" class="nav-link" id="navGame">Game</a></li>
+        </ul>
+        <div class="nav-right">
+            <!-- 中英双语切换 -->
+            <button id="langToggle" class="lang-btn">中文</button>
+            <!-- 夜间/日间模式切换按钮 -->
+            <button id="themeToggle" class="theme-btn" title="切换日夜模式"><i class="fas fa-moon"></i></button>
+            <button id="a11yToggleBtn" class="a11y-toggle-btn" type="button" aria-expanded="false">Accessibility</button>
+            <div id="a11yPanel" class="a11y-panel" aria-label="Accessibility controls">
+                <div class="a11y-controls">
+                    <button id="fontDownBtn" class="a11y-btn" type="button">A-</button>
+                    <button id="fontResetBtn" class="a11y-btn" type="button">A</button>
+                    <button id="fontUpBtn" class="a11y-btn" type="button">A+</button>
+                    <button id="colorSafeToggle" class="a11y-btn" type="button">Color Safe</button>
+                </div>
+            </div>
         </div>
-      </div>
+    </nav>
+
+    <!-- 面包屑导航 -->
+    <div class="breadcrumb" id="breadcrumb">
+        <a href="../HomePage/index.html">Homepage</a> >
     </div>
-  </nav>
 
-  <div class="breadcrumb" id="breadcrumb"><a href="../Homepage/index.html">Homepage</a> &gt; Quiz</div>
+    <!-- 主内容区 -->
+    <main class="container">
+        <!-- 标题区域 -->
+        <section class="hero">
+            <h1>Circle Geometry Quiz</h1>
+            <p>Choose a difficulty and test your understanding with instant feedback.</p>
+        </section>
 
-  <main class="container">
-    <section class="hero quiz-hero">
-      <h1>Circle Geometry Quiz</h1>
-      <p>Choose a difficulty and test your understanding with instant feedback.</p>
-    </section>
+        <!-- Quiz内容区域 -->
+        <section class="card quiz-shell">
+            <div class="difficulty-selector" id="difficultySelector">
+                <h3 id="diffPrompt">Select Difficulty Level</h3>
+                <div class="diff-buttons">
+                    <button class="diff-btn" data-diff="easy" id="diffEasy">Easy</button>
+                    <button class="diff-btn" data-diff="medium" id="diffMedium">Medium</button>
+                    <button class="diff-btn" data-diff="hard" id="diffHard">Hard</button>
+                </div>
+            </div>
 
-    <section class="card quiz-shell">
-      <div class="difficulty-selector" id="difficultySelector">
-        <h3 id="diffPrompt">Select Difficulty Level</h3>
-        <div class="diff-buttons">
-          <button class="diff-btn" data-diff="easy" id="diffEasy">Easy</button>
-          <button class="diff-btn" data-diff="medium" id="diffMedium">Medium</button>
-          <button class="diff-btn" data-diff="hard" id="diffHard">Hard</button>
+            <div class="quiz-header" id="quizHeader" style="display: none;">
+                <span id="question-number">Question 1/5</span>
+                <div class="score-info">
+                    <span id="score">Score: 0/5</span>
+                    <small id="points-per-question" style="display: none; color: #64748b; margin-left: 8px;">
+                        (1 point per question)
+                    </small>
+                </div>
+            </div>
+
+            <h2 id="question-text" style="display: none;">What is the radius of a circle with equation x² + y² = 25?</h2>
+
+            <div class="options-container" id="optionsContainer" style="display: none;"></div>
+
+            <div class="nav-buttons" id="navButtons" style="display: none;">
+                <button id="prevBtn" class="theorem-btn">Previous</button>
+                <button id="nextBtn" class="theorem-btn">Next</button>
+            </div>
+        </section>
+
+
+    </main>
+
+    <!-- 隐私政策弹框 -->
+    <div class="modal-overlay hidden" id="policyModal">
+        <div class="modal-card">
+            <button class="modal-close" id="policyModalCloseBtn">×</button>
+            <h2 id="policyTitle">Privacy & Preference</h2>
+            <p id="policySummary">We only store local preferences (language, theme, accessibility, consent choices) in your browser and do not send personal data to a server.</p>
+            <div class="policy-options">
+                <label><input type="checkbox" id="optOutAds"> <span id="optOutAdsLabel">Opt out of personalized ads</span></label>
+                <label><input type="checkbox" id="optOutAnalytics"> <span id="optOutAnalyticsLabel">Opt out of analytics cookies</span></label>
+                <label><input type="checkbox" id="hideAds"> <span id="hideAdsLabel">Hide ad banner</span></label>
+            </div>
+            <button id="savePolicyBtn" class="theorem-btn" type="button">Save Preferences</button>
+            <p id="policyStatus" class="policy-status" aria-live="polite"></p>
         </div>
-      </div>
+    </div>
 
-      <div class="quiz-header" id="quizHeader" style="display: none;">
-        <span id="question-number">Question 1/5</span>
-        <div class="score-info">
-          <span id="score">Score: 0/5</span>
-          <small id="points-per-question" style="display: none; color: #64748b; margin-left: 8px;">
-            (1 point per question)
-          </small>
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-links">
+            <button id="openPolicyModalBtn" type="button" class="footer-link-btn">Privacy</button>
         </div>
-      </div>
-    
-      <h2 id="question-text" style="display: none;">What is the radius of a circle with equation x² + y² = 25?</h2>
-    
-      <div class="options-container" id="optionsContainer" style="display: none;"></div>
-    
-      <div class="nav-buttons" id="navButtons" style="display: none;">
-        <button id="prevBtn" class="theorem-btn">Previous</button>
-        <button id="nextBtn" class="theorem-btn">Next</button>
-      </div>
-    </section>
-  </main>
+        <div class="copyright">
+            &copy; 2026 EBU5315 Circle Geometry Website
+        </div>
+    </footer>
 
-  <script src="quiz.js"></script>
+    <script src="quiz.js"></script>
 </body>
 </html>

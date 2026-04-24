@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', function() {
             concept1Text: 'The central angle measure equals its intercepted arc measure.',
             concept2Title: 'Inscribed Angle Theorem',
             concept2Text: 'An inscribed angle measures half of the arc it intercepts.',
-            concept3Title: 'Tangent-Secant Angle',
-            concept3Text: 'The angle between a tangent and secant equals half the difference of arcs.',
+            concept3Title: 'Tangent-Secant Theorem',
+            concept3Text: 'The square of the tangent equals the product of the secant and its external segment.',
             concept4Title: 'Chord Properties',
             concept4Text: 'Equal chords subtend equal arcs and lie the same distance from the center.',
             concept5Title: 'Cyclic Quadrilateral',
@@ -41,8 +41,8 @@ document.addEventListener('DOMContentLoaded', function() {
             concept6Text: 'An angle in a semicircle is a right angle.',
             concept7Title: 'Radius to Tangent',
             concept7Text: 'A radius to the tangent point is perpendicular to the tangent.',
-            concept8Title: 'Alternate Segment Theorem',
-            concept8Text: 'The angle between tangent and chord equals the opposite inscribed angle.',
+            concept8Title: 'Perpendicular Chord Bisector Theorem',
+            concept8Text: 'A diameter perpendicular to a chord bisects the chord and its arcs.',
             gameTitle: 'Game',
             gameText: 'Play & practice circle rules',
             quizTitle: 'Quiz',
@@ -89,8 +89,8 @@ document.addEventListener('DOMContentLoaded', function() {
             concept1Text: '中心角的度数等于它所截弧的度数。',
             concept2Title: '圆周角定理',
             concept2Text: '圆周角的度数是它所截弧度数的一半。',
-            concept3Title: '切线-割线角定理',
-            concept3Text: '切线与割线夹角等于所截两条弧差的一半。',
+            concept3Title: '切割线定理',
+            concept3Text: '切线长的平方，等于割线与它的外段长的乘积。',
             concept4Title: '弦的性质',
             concept4Text: '相等的弦所对的弧相等，且到圆心的距离相等。',
             concept5Title: '圆内接四边形',
@@ -99,8 +99,8 @@ document.addEventListener('DOMContentLoaded', function() {
             concept6Text: '半圆内的角为直角。',
             concept7Title: '半径与切线',
             concept7Text: '到切点的半径与切线垂直。',
-            concept8Title: '交替弓形定理',
-            concept8Text: '切线与弦之间的角等于对面的圆周角。',
+            concept8Title: '垂径定理',
+            concept8Text: '垂直于弦的直径，平分这条弦，并且平分弦所对的两条弧。',
             gameTitle: '游戏',
             gameText: '通过游戏练习圆几何规则',
             quizTitle: '测验',
@@ -494,13 +494,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 { regex: /^(hi|hello|hey|greetings)$/i, answer: 'Hello! 👋 How can I help you with circle geometry today?' },
                 { regex: /thanks|thank you|appreciate/i, answer: 'You\'re welcome! 😊 Feel free to ask more questions about circle theorems.' },
                 { regex: /how are you|how\'s it/i, answer: 'I\'m here and ready to help! 🎓 What would you like to learn about circles?' },
-                { regex: /help|what can you do/i, answer: 'I can explain circle theorems like central angles, inscribed angles, tangent-secant angles, chord properties, cyclic quadrilaterals, angles in semicircles, radius to tangent, and alternate segment theorem. Just ask!' }
+                { regex: /help|what can you do/i, answer: 'I can explain circle theorems like central angles, inscribed angles, tangent-secant angles, chord properties, cyclic quadrilaterals, angles in semicircles, radius to tangent, and perpendicular chord bisector theorem. Just ask!' }
             ],
             cn: [
                 { regex: /^(你好|嗨|你好吗|哈喽)$/i, answer: '你好！👋 有什么关于圆几何的问题吗？' },
                 { regex: /谢谢|感谢|多谢/i, answer: '不客气！😊 欢迎继续提问圆几何问题。' },
                 { regex: /你好吗|怎么样/i, answer: '我已准备好帮助你！🎓 想学什么关于圆的知识吗？' },
-                { regex: /帮助|你能做什么/i, answer: '我可以解释圆几何定理，如中心角、圆周角、切线-割线角、弦的性质、圆内接四边形、半圆内角、半径与切线、交替弓形定理。尽管问吧！' }
+                { regex: /帮助|你能做什么/i, answer: '我可以解释圆几何定理，如中心角、圆周角、切线-割线角、弦的性质、圆内接四边形、半圆内角、半径与切线、垂径定理。尽管问吧！' }
             ]
         };
 
@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 { regex: /cyclic|quadrilateral|内接|四边形/, answer: 'Opposite angles of a cyclic quadrilateral sum to 180° because they subtend supplementary arcs. 📊' },
                 { regex: /semicircle|diameter|half|90|right angle|半圆|直径/, answer: 'An angle in a semicircle is a right angle (90°), because it subtends a diameter. 📏' },
                 { regex: /radius|tangent point|perpendicular|垂直/, answer: 'The radius drawn to the tangent point is perpendicular to the tangent line. This is a key property! 🎪' },
-                { regex: /alternate|segment|交替|弓形/, answer: 'In the alternate segment theorem, the angle between a tangent and a chord equals the angle in the opposite segment. 🔑' }
+                { regex: /perpendicular|chord|bisector|垂径/, answer: 'In the perpendicular chord bisector theorem, a diameter perpendicular to a chord bisects the chord and its arcs. 🔑' }
             ],
             cn: [
                 { regex: /中心角|中心/, answer: '中心角的度数等于它所截弧的度数。它由圆心连接圆上的两点形成。 📐' },
@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 { regex: /圆内接四边形|内接四边形|四边形/, answer: '圆内接四边形的对角和为180°，因为它们分别对着互补的弧。 📊' },
                 { regex: /半圆|直径|直角|90/, answer: '半圆内的圆周角为直角（90°），因为它所对的弧是直径。 📏' },
                 { regex: /半径|切点|垂直/, answer: '到切点的半径与切线垂直。这是一个重要的性质！ 🎪' },
-                { regex: /交替|弓形/, answer: '交替弓形定理说明切线与弦之间的角等于对面弧中对应的圆周角。 🔑' }
+                { regex: /垂径|垂直|弦|直径/, answer: '垂径定理说明垂直于弦的直径，平分这条弦，并且平分弦所对的两条弧。 🔑' }
             ]
         };
 
@@ -771,36 +771,116 @@ class TheoremAnimator {
         // 定理数据
         this.theorems = [
             {
-                en: { title: 'Central Angle Theorem', desc: 'The central angle equals the arc it intercepts.', detail: 'The central angle and its intercepted arc have the same measure. This animation shows the angle at the center and the corresponding arc.' },
-                cn: { title: '中心角定理', desc: '中心角的度数等于所截弧的度数。', detail: '中心角与它所截弧的度数相等。动画展示圆心角与对应弧之间的关系。' }
+                en: { 
+                    title: 'Central Angle Theorem', 
+                    desc: 'The central angle equals the arc it intercepts.', 
+                    detail: 'The central angle and its intercepted arc have the same measure. This animation shows the angle at the center and the corresponding arc.',
+                    info: 'Central Angle = Arc'
+                },
+                cn: { 
+                    title: '中心角定理', 
+                    desc: '中心角的度数等于所截弧的度数。', 
+                    detail: '中心角与它所截弧的度数相等。动画展示圆心角与对应弧之间的关系。',
+                    info: '圆心角 = 弧'
+                }
             },
             {
-                en: { title: 'Inscribed Angle Theorem', desc: 'The inscribed angle is half of the intercepted arc.', detail: 'An angle formed by two chords at a point on the circle measures half of its intercepted arc.' },
-                cn: { title: '圆周角定理', desc: '圆周角的度数是它所截弧度数的一半。', detail: '在圆上两条弦形成的角，其度数等于所截弧度数的一半。' }
+                en: { 
+                    title: 'Inscribed Angle Theorem', 
+                    desc: 'The inscribed angle is half of the intercepted arc.', 
+                    detail: 'An angle formed by two chords at a point on the circle measures half of its intercepted arc.',
+                    info: 'Inscribed Angle (45°) = Central Angle (90°) ÷ 2'
+                },
+                cn: { 
+                    title: '圆周角定理', 
+                    desc: '圆周角的度数是它所截弧度数的一半。', 
+                    detail: '在圆上两条弦形成的角，其度数等于所截弧度数的一半。',
+                    info: '圆周角 (45°) = 圆心角 (90°) ÷ 2'
+                }
             },
             {
-                en: { title: 'Tangent-Secant Angle', desc: 'The angle equals half the difference of intercepted arcs.', detail: 'The angle between a tangent and a secant is half the difference of the arcs between the two secant points.' },
-                cn: { title: '切线-割线角定理', desc: '切线与割线夹角等于所截两条弧差的一半。', detail: '切线与割线之间的角等于两条割线所截弧差的一半。' }
+                en: { 
+                    title: 'Tangent-Secant Theorem', 
+                    desc: 'The square of the tangent equals the product of the secant and its external segment.', 
+                    detail: 'From an external point P, draw a tangent PA (A is the point of tangency) and a secant PBC (intersecting the circle at B and C). Then PA² = PB × PC.',
+                    info: 'Tangent-Secant Theorem: PA² = PB × PC'
+                },
+                cn: { 
+                    title: '切割线定理', 
+                    desc: '切线长的平方，等于割线与它的外段长的乘积。', 
+                    detail: '从圆外一点 P 引圆的切线 PA（A 为切点）和割线 PBC（与圆交于 B、C 两点），则：PA²=PB⋅PC。',
+                    info: '切割线定理: PA² = PB × PC'
+                }
             },
             {
-                en: { title: 'Chord Properties', desc: 'Equal chords are equidistant from the center.', detail: 'Equal length chords subtend equal arcs and are the same distance from the center of the circle.' },
-                cn: { title: '弦的性质', desc: '相等的弦到圆心的距离相等。', detail: '相等的弦所对的弧相等，并且到圆心的距离也相等。' }
+                en: { 
+                    title: 'Chord Properties', 
+                    desc: 'In the same or equal circles, equal chords subtend equal arcs and are equidistant from the center.', 
+                    detail: 'In the same or equal circles, equal length chords subtend equal arcs (major and minor arcs respectively) and are equidistant from the center.',
+                    info: 'Equal Chords: Chord 1 ≈ Chord 2'
+                },
+                cn: { 
+                    title: '弦的性质', 
+                    desc: '在同圆或等圆中，相等的弦所对的弧相等，且到圆心的距离相等。', 
+                    detail: '在同圆或等圆中，相等的弦所对的弧（优弧、劣弧分别）相等，且弦心距（到圆心的距离）相等。',
+                    info: '相等弦: 弦1 ≈ 弦2'
+                }
             },
             {
-                en: { title: 'Cyclic Quadrilateral', desc: 'Opposite angles sum to 180°.', detail: 'In a cyclic quadrilateral, the sum of each pair of opposite angles is 180 degrees.' },
-                cn: { title: '圆内接四边形', desc: '圆内接四边形的对角和为180°。', detail: '圆内接四边形的任意对角和为180度，这一动画展示了对角配对关系。' }
+                en: { 
+                    title: 'Cyclic Quadrilateral', 
+                    desc: 'Opposite angles sum to 180°.', 
+                    detail: 'In a cyclic quadrilateral, the sum of each pair of opposite angles is 180 degrees.',
+                    info: 'Cyclic Quadrilateral: ∠A + ∠C = 180°, ∠B + ∠D = 180°'
+                },
+                cn: { 
+                    title: '圆内接四边形', 
+                    desc: '圆内接四边形的对角和为180°。', 
+                    detail: '圆内接四边形的任意对角和为180度，这一动画展示了对角配对关系。',
+                    info: '圆内接四边形: ∠A + ∠C = 180°, ∠B + ∠D = 180°'
+                }
             },
             {
-                en: { title: 'Angle in a Semicircle', desc: 'An angle in a semicircle is a right angle.', detail: 'An inscribed angle that subtends a diameter always measures 90 degrees.' },
-                cn: { title: '半圆内角定理', desc: '半圆内的角为直角。', detail: '对着直径的圆周角总是90度。' }
+                en: { 
+                    title: 'Angle in a Semicircle', 
+                    desc: 'An angle in a semicircle is a right angle.', 
+                    detail: 'An inscribed angle that subtends a diameter always measures 90 degrees.',
+                    info: 'Angle in a Semicircle = 90°'
+                },
+                cn: { 
+                    title: '半圆内角定理', 
+                    desc: '半圆内的角为直角。', 
+                    detail: '对着直径的圆周角总是90度。',
+                    info: '半圆内角 = 90°'
+                }
             },
             {
-                en: { title: 'Radius to Tangent', desc: 'The radius to a tangent point is perpendicular.', detail: 'A radius drawn to the point of tangency is perpendicular to the tangent line.' },
-                cn: { title: '半径与切线', desc: '半径到切点是垂直的。', detail: '从圆心到切点所画的半径，与切线成直角。' }
+                en: { 
+                    title: 'Radius to Tangent', 
+                    desc: 'The radius to a tangent point is perpendicular.', 
+                    detail: 'A radius drawn to the point of tangency is perpendicular to the tangent line.',
+                    info: 'Radius to Tangent is perpendicular'
+                },
+                cn: { 
+                    title: '半径与切线', 
+                    desc: '半径到切点是垂直的。', 
+                    detail: '从圆心到切点所画的半径，与切线成直角。',
+                    info: '半径与切线垂直'
+                }
             },
             {
-                en: { title: 'Alternate Segment Theorem', desc: 'The angle between tangent and chord equals the opposite inscribed angle.', detail: 'The angle between a tangent and chord through the point of contact equals the angle in the opposite segment of the circle.' },
-                cn: { title: '交替弓形定理', desc: '切线与弦之间的角等于对弧中的圆周角。', detail: '切线与经过切点的弦之间的角，等于该弦对面的圆周角。' }
+                en: { 
+                    title: 'Perpendicular Chord Bisector Theorem', 
+                    desc: 'A diameter perpendicular to a chord bisects the chord and its arcs.', 
+                    detail: 'In circle O, if diameter CD is perpendicular to chord AB at point E, then AE = EB, arc AC = arc BC, and arc AD = arc BD.',
+                    info: 'Perpendicular Chord Bisector: AE = EB, arc AC = arc BC'
+                },
+                cn: { 
+                    title: '垂径定理', 
+                    desc: '垂直于弦的直径，平分这条弦，并且平分弦所对的两条弧。', 
+                    detail: '在圆 O 中，若直径 CD⊥ 弦 AB 于点 E，则：AE=EB,AC⌢=BC⌢,AD⌢=BD⌢。',
+                    info: '垂径定理: AE=EB,AC⌢=BC⌢,AD⌢=BD⌢'
+                }
             }
         ];
 
@@ -931,6 +1011,34 @@ class TheoremAnimator {
                 this.drawAlternateSegment(centerX, centerY, radius);
                 break;
         }
+        
+        // 更新信息面板为当前语言
+        const theorem = this.theorems[this.currentTheorem];
+        const text = theorem[this.language] || theorem.en;
+        if (text.info) {
+            if (this.currentTheorem === 0) {
+                // 中心角定理：动态显示角度值
+                const degrees = Math.round(this.animationTime % 360);
+                document.getElementById('theorem-info').textContent = `${text.info} = ${degrees}°`;
+            } else if (this.currentTheorem === 1) {
+                // 圆周角定理：动态显示角度值
+                let centralAngleDegrees = Math.round(this.animationTime % 360);
+                // 确保圆心角始终小于180度
+                if (centralAngleDegrees > 180) {
+                    centralAngleDegrees = 360 - centralAngleDegrees;
+                }
+                const inscribedAngleDegrees = Math.round(centralAngleDegrees / 2);
+                if (this.language === 'cn') {
+                    document.getElementById('theorem-info').textContent = `圆周角 (${inscribedAngleDegrees}°) = 圆心角 (${centralAngleDegrees}°) ÷ 2`;
+                } else {
+                    document.getElementById('theorem-info').textContent = `Inscribed Angle (${inscribedAngleDegrees}°) = Central Angle (${centralAngleDegrees}°) ÷ 2`;
+                }
+            } else {
+                // 其他定理：使用静态文本
+                document.getElementById('theorem-info').textContent = text.info;
+            }
+        }
+        
         this.ctx.restore();
     }
 
@@ -953,10 +1061,10 @@ class TheoremAnimator {
         this.ctx.fill();
 
         // 绘制两条半径和对应的弧
-        const startAngle = angle;
-        const endAngle = angle + Math.PI / 2;
+        const startAngle = 0; // 固定一条边在右侧
+        const endAngle = angle; // 另一条边随动画移动
 
-        // 半径1 - 蓝色
+        // 半径1 - 蓝色（固定）
         const x1 = cx + r * Math.cos(startAngle);
         const y1 = cy + r * Math.sin(startAngle);
         this.ctx.strokeStyle = '#3b82f6';
@@ -972,7 +1080,7 @@ class TheoremAnimator {
         this.ctx.arc(x1, y1, 4, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // 半径2 - 绿色
+        // 半径2 - 绿色（移动）
         const x2 = cx + r * Math.cos(endAngle);
         const y2 = cy + r * Math.sin(endAngle);
         this.ctx.strokeStyle = '#10b981';
@@ -1004,7 +1112,7 @@ class TheoremAnimator {
         // 显示角度数值
         this.ctx.font = 'bold 16px Arial';
         this.ctx.fillStyle = '#ef4444';
-        this.ctx.fillText('90°', cx - 30, cy - 60);
+        this.ctx.fillText(`${degrees}°`, cx - 30, cy - 60);
 
         // 显示弧标签
         const midAngle = (startAngle + endAngle) / 2;
@@ -1012,15 +1120,19 @@ class TheoremAnimator {
         const arcLabelY = cy + (r + 25) * Math.sin(midAngle);
         this.ctx.font = 'bold 13px Arial';
         this.ctx.fillStyle = '#ef4444';
-        this.ctx.fillText('Arc = 90°', arcLabelX, arcLabelY);
-
-        // 更新信息面板
-        document.getElementById('theorem-info').textContent = 'Central Angle = Arc = 90°';
+        this.ctx.fillText(`Arc = ${degrees}°`, arcLabelX, arcLabelY);
     }
 
     drawInscribedAngle(cx, cy, r) {
         const isDarkMode = document.body.classList.contains('dark-mode');
-        const angle = (this.animationTime % 360) * Math.PI / 180;
+        let angle = (this.animationTime % 360) * Math.PI / 180;
+        let centralAngleDegrees = Math.round(this.animationTime % 360);
+        // 确保圆心角始终小于180度
+        if (centralAngleDegrees > 180) {
+            centralAngleDegrees = 360 - centralAngleDegrees;
+            angle = (360 - centralAngleDegrees) * Math.PI / 180;
+        }
+        const inscribedAngleDegrees = Math.round(centralAngleDegrees / 2);
 
         // 绘制圆
         this.ctx.strokeStyle = isDarkMode ? '#64748b' : '#333';
@@ -1029,12 +1141,18 @@ class TheoremAnimator {
         this.ctx.arc(cx, cy, r, 0, Math.PI * 2);
         this.ctx.stroke();
 
-        // 圆上的三个点
-        const pointA = { x: cx + r, y: cy };
-        const pointB = { x: cx + r * Math.cos(angle + Math.PI / 3), y: cy + r * Math.sin(angle + Math.PI / 3) };
-        const pointP = { x: cx + r * Math.cos(angle - Math.PI / 2), y: cy + r * Math.sin(angle - Math.PI / 2) };
+        // 圆上的点
+        const pointA = { x: cx + r, y: cy }; // 固定点A在右侧
+        // 确保点B的位置与圆心角一致
+        let pointBAngle = angle;
+        if (Math.round(this.animationTime % 360) > 180) {
+            pointBAngle = (360 - centralAngleDegrees) * Math.PI / 180;
+        }
+        const pointB = { x: cx + r * Math.cos(pointBAngle), y: cy + r * Math.sin(pointBAngle) }; // 点B随动画移动
+        // 确保点P始终在优弧上
+        const pointP = { x: cx + r * Math.cos(pointBAngle + Math.PI / 2), y: cy + r * Math.sin(pointBAngle + Math.PI / 2) }; // 圆周角顶点
 
-        // 绘制弦AB - 蓝色
+        // 绘制弦AB
         this.ctx.strokeStyle = '#3b82f6';
         this.ctx.lineWidth = 3;
         this.ctx.beginPath();
@@ -1042,25 +1160,29 @@ class TheoremAnimator {
         this.ctx.lineTo(pointB.x, pointB.y);
         this.ctx.stroke();
 
-        // 从P点到A、B的线 - 圆周角（红色）
+        // 绘制圆心角（蓝色）
+        this.ctx.strokeStyle = '#3b82f6';
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.moveTo(cx, cy);
+        this.ctx.lineTo(pointA.x, pointA.y);
+        this.ctx.stroke();
+        this.ctx.beginPath();
+        this.ctx.moveTo(cx, cy);
+        this.ctx.lineTo(pointB.x, pointB.y);
+        this.ctx.stroke();
+
+        // 绘制圆周角（红色）
         this.ctx.strokeStyle = '#ef4444';
         this.ctx.lineWidth = 3;
         this.ctx.beginPath();
         this.ctx.moveTo(pointP.x, pointP.y);
         this.ctx.lineTo(pointA.x, pointA.y);
+        this.ctx.stroke();
+        this.ctx.beginPath();
+        this.ctx.moveTo(pointP.x, pointP.y);
         this.ctx.lineTo(pointB.x, pointB.y);
         this.ctx.stroke();
-
-        // 绘制圆心到弦的中点 - 虚线辅助线
-        const midAB = { x: (pointA.x + pointB.x) / 2, y: (pointA.y + pointB.y) / 2 };
-        this.ctx.strokeStyle = isDarkMode ? '#94a3b8' : '#ccc';
-        this.ctx.lineWidth = 2;
-        this.ctx.setLineDash([4, 4]);
-        this.ctx.beginPath();
-        this.ctx.moveTo(cx, cy);
-        this.ctx.lineTo(midAB.x, midAB.y);
-        this.ctx.stroke();
-        this.ctx.setLineDash([]);
 
         // 绘制点
         this.ctx.fillStyle = '#3b82f6';
@@ -1093,27 +1215,23 @@ class TheoremAnimator {
         // 圆周角标签
         this.ctx.fillStyle = '#ef4444';
         this.ctx.font = 'bold 14px Arial';
-        this.ctx.fillText('45°', pointP.x - 25, pointP.y - 15);
+        this.ctx.fillText(`${inscribedAngleDegrees}°`, pointP.x + 25, pointP.y + 15);
 
         // 圆心角标签
         this.ctx.fillStyle = '#3b82f6';
         this.ctx.font = 'bold 14px Arial';
-        this.ctx.fillText('90°', cx + 15, cy - 20);
+        this.ctx.fillText(`${centralAngleDegrees}°`, cx + 15, cy - 20);
 
         // 点标签
         this.ctx.font = 'bold 11px Arial';
         this.ctx.fillStyle = isDarkMode ? '#e8ecf1' : '#333';
-        this.ctx.fillText('P', pointP.x + 12, pointP.y - 12);
+        this.ctx.fillText('P', pointP.x - 12, pointP.y + 12);
         this.ctx.fillText('A', pointA.x + 12, pointA.y - 12);
         this.ctx.fillText('B', pointB.x + 12, pointB.y + 15);
-
-        // 更新信息面板
-        document.getElementById('theorem-info').textContent = 'Inscribed Angle (45°) = Central Angle (90°) ÷ 2';
     }
 
     drawTangentSecant(cx, cy, r) {
         const isDarkMode = document.body.classList.contains('dark-mode');
-        const angle = (this.animationTime % 360) * Math.PI / 180;
 
         // 绘制圆
         this.ctx.strokeStyle = isDarkMode ? '#64748b' : '#333';
@@ -1126,17 +1244,46 @@ class TheoremAnimator {
         const px = cx - r * 1.8;
         const py = cy;
 
-        // 切点T
+        // 切点计算
         const angleT = Math.acos(r / (r * 1.8));
         const touchX = cx + r * Math.cos(Math.PI - angleT);
         const touchY = cy + r * Math.sin(Math.PI - angleT);
 
-        // 割线上的两个点
-        const angleS = Math.acos(r / (r * 1.8)) + angle * Math.PI / 180;
-        const secantPoint1X = cx + r * Math.cos(Math.PI - angleS - 0.3);
-        const secantPoint1Y = cy + r * Math.sin(Math.PI - angleS - 0.3);
-        const secantPoint2X = cx + r * Math.cos(Math.PI - angleS + 0.3);
-        const secantPoint2Y = cy + r * Math.sin(Math.PI - angleS + 0.3);
+        // 让割线在两条切线之间平滑移动，形成循环
+        // 使用正弦函数实现平滑的来回移动，范围覆盖从一条切线到另一条切线
+        // 减慢速度，确保平滑移动
+        const t = this.animationTime * 0.005;
+        const angle = Math.sin(t) * angleT * 2;
+
+        // 割线角度，在两条切线之间摆动
+        const secantAngle = Math.PI - angleT + angle;
+        
+        // 计算割线与圆的两个交点
+        // 割线方程：从点P(px, py)出发，角度为secantAngle
+        const m = Math.tan(secantAngle);
+        const b = py - m * px;
+        
+        // 解圆与直线的交点
+        const A = 1 + m * m;
+        const B = 2 * (m * b - m * cy - cx);
+        const C = cx * cx + cy * cy - r * r + b * b - 2 * b * cy;
+        const discriminant = B * B - 4 * A * C;
+        
+        let secantPoint1X, secantPoint1Y, secantPoint2X, secantPoint2Y;
+        if (discriminant >= 0) {
+            const t1 = (-B + Math.sqrt(discriminant)) / (2 * A);
+            const t2 = (-B - Math.sqrt(discriminant)) / (2 * A);
+            secantPoint1X = t1;
+            secantPoint1Y = m * t1 + b;
+            secantPoint2X = t2;
+            secantPoint2Y = m * t2 + b;
+        } else {
+            // 退化情况，使用默认值
+            secantPoint1X = cx + r * Math.cos(secantAngle - 0.3);
+            secantPoint1Y = cy + r * Math.sin(secantAngle - 0.3);
+            secantPoint2X = cx + r * Math.cos(secantAngle + 0.3);
+            secantPoint2Y = cy + r * Math.sin(secantAngle + 0.3);
+        }
 
         // 绘制切线 - 绿色
         this.ctx.strokeStyle = '#10b981';
@@ -1152,6 +1299,10 @@ class TheoremAnimator {
         this.ctx.beginPath();
         this.ctx.moveTo(px, py);
         this.ctx.lineTo(secantPoint1X, secantPoint1Y);
+        // 延长割线以显示另一个交点B
+        const extendedX = secantPoint1X + (secantPoint1X - px) * 0.5;
+        const extendedY = secantPoint1Y + (secantPoint1Y - py) * 0.5;
+        this.ctx.lineTo(extendedX, extendedY);
         this.ctx.stroke();
 
         // 绘制从圆心到切点的半径 - 虚线辅助
@@ -1204,25 +1355,17 @@ class TheoremAnimator {
         this.ctx.font = 'bold 11px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.fillText('P', px - 15, py - 15);
-        this.ctx.fillText('T', touchX + 12, touchY - 12);
-        this.ctx.fillText('A', secantPoint1X + 12, secantPoint1Y - 12);
-        this.ctx.fillText('B', secantPoint2X + 12, secantPoint2Y + 15);
-
-        // 角度标签
-        this.ctx.fillStyle = '#fbbf24';
-        this.ctx.font = 'bold 13px Arial';
-        this.ctx.fillText('∠APT', px + 25, py + 25);
+        this.ctx.fillText('A', touchX + 12, touchY - 12);
+        this.ctx.fillText('B', secantPoint1X + 12, secantPoint1Y - 12);
+        this.ctx.fillText('C', secantPoint2X + 12, secantPoint2Y + 15);
 
         // 切线和割线标签
         this.ctx.font = 'bold 10px Arial';
         this.ctx.fillStyle = '#10b981';
-        this.ctx.fillText('Tangent', (px + touchX) / 2 + 15, (py + touchY) / 2 - 10);
+        this.ctx.fillText('Tangent PA', (px + touchX) / 2 + 15, (py + touchY) / 2 - 10);
 
         this.ctx.fillStyle = '#a855f7';
-        this.ctx.fillText('Secant', (px + secantPoint1X) / 2 - 30, (py + secantPoint1Y) / 2);
-
-        // 更新信息面板
-        document.getElementById('theorem-info').textContent = 'Tangent-Secant Angle: PT² = PA × PB';
+        this.ctx.fillText('Secant PBC', (px + secantPoint1X) / 2 - 30, (py + secantPoint1Y) / 2);
     }
 
     drawChordProperties(cx, cy, r) {
@@ -1242,7 +1385,7 @@ class TheoremAnimator {
         const chord1B = { x: cx + r * Math.cos(baseAngle + Math.PI / 2.5), y: cy + r * Math.sin(baseAngle + Math.PI / 2.5) };
 
         // 第二条弦（等长）- 绿色
-        const angle2 = baseAngle + Math.PI * 1.5 + angle * 0.01;
+        const angle2 = baseAngle + Math.PI * 1.5 + angle;
         const chord2A = { x: cx + r * Math.cos(angle2), y: cy + r * Math.sin(angle2) };
         const chord2B = { x: cx + r * Math.cos(angle2 + Math.PI / 2.5), y: cy + r * Math.sin(angle2 + Math.PI / 2.5) };
 
@@ -1338,8 +1481,7 @@ class TheoremAnimator {
         this.ctx.fillText(`d₁=${Math.round(dist1)}`, midChord1.x + 20, midChord1.y - 5);
         this.ctx.fillText(`d₂=${Math.round(dist2)}`, midChord2.x + 20, midChord2.y + 10);
 
-        // 更新信息面板
-        document.getElementById('theorem-info').textContent = `Equal Chords: Chord 1 = ${Math.round(chord1Length)} ≈ Chord 2 = ${Math.round(chord2Length)}`;
+
     }
 
     drawCyclicQuadrilateral(cx, cy, r) {
@@ -1388,7 +1530,7 @@ class TheoremAnimator {
         this.ctx.setLineDash([]);
 
         // 计算对角
-        // 使用向量计算角度
+        // 使用向量计算角度，确保返回的是内角（小于180度）
         const calculateAngle = (p1, vertex, p2) => {
             const vec1 = { x: p1.x - vertex.x, y: p1.y - vertex.y };
             const vec2 = { x: p2.x - vertex.x, y: p2.y - vertex.y };
@@ -1397,6 +1539,8 @@ class TheoremAnimator {
             const cross = vec1.x * vec2.y - vec1.y * vec2.x;
             let angle = Math.atan2(cross, dot) * 180 / Math.PI;
             if (angle < 0) angle += 360;
+            // 确保返回的是内角（小于180度）
+            if (angle > 180) angle = 360 - angle;
             return Math.round(angle);
         };
 
@@ -1451,8 +1595,7 @@ class TheoremAnimator {
         const sumOppAC = angleA + angleC;
         const sumOppBD = angleB + angleD;
 
-        // 更新信息面板
-        document.getElementById('theorem-info').textContent = `Cyclic Quadrilateral: ∠A + ∠C = ${sumOppAC}°, ∠B + ∠D = ${sumOppBD}°`;
+
     }
 
     drawAngleInSemicircle(cx, cy, r) {
@@ -1508,7 +1651,7 @@ class TheoremAnimator {
         this.ctx.fillText('90°', cx, cy + 10);
         this.ctx.fillText('Semicircle Angle', pointP.x, pointP.y - 15);
 
-        document.getElementById('theorem-info').textContent = 'Angle in a Semicircle = 90°';
+
     }
 
     drawRadiusToTangent(cx, cy, r) {
@@ -1560,69 +1703,133 @@ class TheoremAnimator {
         this.ctx.fillText('Radius', cx + 50, cy - 10);
         this.ctx.fillText('90°', cx + 35, cy + 20);
 
-        document.getElementById('theorem-info').textContent = 'Radius to Tangent is perpendicular';
+
     }
 
     drawAlternateSegment(cx, cy, r) {
         const isDarkMode = document.body.classList.contains('dark-mode');
         const angle = (this.animationTime % 360) * Math.PI / 180;
-        const pointT = { x: cx + r, y: cy };
-        const chordA = { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
-        const chordB = pointT;
-        const chordC = { x: cx + r * Math.cos(angle + 1.2), y: cy + r * Math.sin(angle + 1.2) };
-
+        
+        // 绘制圆
         this.ctx.strokeStyle = isDarkMode ? '#64748b' : '#333';
         this.ctx.lineWidth = 2.5;
         this.ctx.beginPath();
         this.ctx.arc(cx, cy, r, 0, Math.PI * 2);
         this.ctx.stroke();
-
-        this.ctx.strokeStyle = '#3b82f6';
-        this.ctx.lineWidth = 3;
-        this.ctx.beginPath();
-        this.ctx.moveTo(pointT.x, pointT.y);
-        this.ctx.lineTo(chordA.x, chordA.y);
-        this.ctx.lineTo(chordC.x, chordC.y);
-        this.ctx.stroke();
-
+        
+        // 弦 AB（随动画移动）
+        const chordA = { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
+        const chordB = { x: cx + r * Math.cos(angle + Math.PI), y: cy + r * Math.sin(angle + Math.PI) };
+        
+        // 弦的中点 E
+        const pointE = { x: (chordA.x + chordB.x) / 2, y: (chordA.y + chordB.y) / 2 };
+        
+        // 直径 CD（垂直于弦 AB）
+        // 计算垂直方向的单位向量
+        const dx = chordB.x - chordA.x;
+        const dy = chordB.y - chordA.y;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const normalX = -dy / length;
+        const normalY = dx / length;
+        
+        const pointC = { x: cx + r * normalX, y: cy + r * normalY };
+        const pointD = { x: cx - r * normalX, y: cy - r * normalY };
+        
+        // 绘制直径 CD
         this.ctx.strokeStyle = '#10b981';
         this.ctx.lineWidth = 3;
         this.ctx.beginPath();
-        this.ctx.moveTo(pointT.x, pointT.y - 80);
-        this.ctx.lineTo(pointT.x + 80, pointT.y + 20);
+        this.ctx.moveTo(pointC.x, pointC.y);
+        this.ctx.lineTo(pointD.x, pointD.y);
         this.ctx.stroke();
-
-        this.ctx.strokeStyle = '#ef4444';
-        this.ctx.lineWidth = 2;
-        this.ctx.setLineDash([4, 4]);
+        
+        // 绘制弦 AB
+        this.ctx.strokeStyle = '#3b82f6';
+        this.ctx.lineWidth = 3;
         this.ctx.beginPath();
         this.ctx.moveTo(chordA.x, chordA.y);
-        this.ctx.lineTo(chordC.x, chordC.y);
+        this.ctx.lineTo(chordB.x, chordB.y);
+        this.ctx.stroke();
+        
+        // 绘制垂直标记
+        this.ctx.strokeStyle = isDarkMode ? '#94a3b8' : '#ccc';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        // 绘制垂直符号
+        const perpSize = 15;
+        this.ctx.moveTo(pointE.x + normalX * perpSize, pointE.y + normalY * perpSize);
+        this.ctx.lineTo(pointE.x - normalX * perpSize, pointE.y - normalY * perpSize);
+        this.ctx.moveTo(pointE.x + normalY * perpSize, pointE.y - normalX * perpSize);
+        this.ctx.lineTo(pointE.x - normalY * perpSize, pointE.y + normalX * perpSize);
+        this.ctx.stroke();
+        
+        // 绘制弧 AC 和 BC
+        this.ctx.strokeStyle = '#fbbf24';
+        this.ctx.lineWidth = 2;
+        this.ctx.setLineDash([4, 4]);
+        // 绘制弧 AC
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, r * 1.1, Math.atan2(chordA.y - cy, chordA.x - cx), Math.atan2(pointC.y - cy, pointC.x - cx));
+        this.ctx.stroke();
+        // 绘制弧 BC
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, r * 1.1, Math.atan2(chordB.y - cy, chordB.x - cx), Math.atan2(pointC.y - cy, pointC.x - cx), true);
         this.ctx.stroke();
         this.ctx.setLineDash([]);
-
-        this.ctx.fillStyle = '#ef4444';
+        
+        // 绘制点
+        this.ctx.fillStyle = '#3b82f6';
         this.ctx.beginPath();
         this.ctx.arc(chordA.x, chordA.y, 4, 0, Math.PI * 2);
         this.ctx.fill();
-
+        
+        this.ctx.beginPath();
+        this.ctx.arc(chordB.x, chordB.y, 4, 0, Math.PI * 2);
+        this.ctx.fill();
+        
         this.ctx.fillStyle = '#10b981';
         this.ctx.beginPath();
-        this.ctx.arc(pointT.x, pointT.y, 4, 0, Math.PI * 2);
+        this.ctx.arc(pointC.x, pointC.y, 4, 0, Math.PI * 2);
         this.ctx.fill();
-
+        
+        this.ctx.beginPath();
+        this.ctx.arc(pointD.x, pointD.y, 4, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        this.ctx.fillStyle = '#fbbf24';
+        this.ctx.beginPath();
+        this.ctx.arc(pointE.x, pointE.y, 4, 0, Math.PI * 2);
+        this.ctx.fill();
+        
         this.ctx.fillStyle = isDarkMode ? '#e8ecf1' : '#000';
         this.ctx.beginPath();
         this.ctx.arc(cx, cy, 3, 0, Math.PI * 2);
         this.ctx.fill();
-
+        
+        // 标签
         this.ctx.fillStyle = isDarkMode ? '#e8ecf1' : '#333';
         this.ctx.font = 'bold 13px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('Tangent', pointT.x + 40, pointT.y - 40);
-        this.ctx.fillText('Chord', (chordA.x + chordC.x) / 2, (chordA.y + chordC.y) / 2 - 10);
-        this.ctx.fillText('∠', chordA.x - 20, chordA.y + 20);
-
-        document.getElementById('theorem-info').textContent = 'Alternate Segment: tangent-chord angle equals inscribed angle';
+        this.ctx.fillText('A', chordA.x + 15, chordA.y + 15);
+        this.ctx.fillText('B', chordB.x - 15, chordB.y - 15);
+        this.ctx.fillText('C', pointC.x + 15, pointC.y - 15);
+        this.ctx.fillText('D', pointD.x - 15, pointD.y + 15);
+        this.ctx.fillText('E', pointE.x + 15, pointE.y + 15);
+        
+        // 标记 AE=EB
+        this.ctx.font = 'bold 11px Arial';
+        this.ctx.fillStyle = '#fbbf24';
+        this.ctx.fillText('AE=EB', (chordA.x + pointE.x) / 2, (chordA.y + pointE.y) / 2 - 10);
+        
+        // 标记弧 AC=BC
+        this.ctx.fillText('弧AC=弧BC', (chordA.x + pointC.x) / 2, (chordA.y + pointC.y) / 2 - 15);
+        
+        // 直径和弦的标签
+        this.ctx.font = 'bold 10px Arial';
+        this.ctx.fillStyle = '#10b981';
+        this.ctx.fillText('Diameter CD', (pointC.x + pointD.x) / 2 - 40, (pointC.y + pointD.y) / 2);
+        
+        this.ctx.fillStyle = '#3b82f6';
+        this.ctx.fillText('Chord AB', (chordA.x + chordB.x) / 2 + 30, (chordA.y + chordB.y) / 2);
     }
 }

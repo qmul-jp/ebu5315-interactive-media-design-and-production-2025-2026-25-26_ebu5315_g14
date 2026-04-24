@@ -1,0 +1,245 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CircleLab - Learn Circle Geometry</title>
+    <!-- 外部CSS文件引入（作业要求） -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- 引入字体图标（简约风格） -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 头部导航栏 -->
+    <nav class="navbar">
+        <a href="index.html" class="logo brand-logo" aria-label="CircleLab homepage">
+            <span class="brand-lockup" aria-hidden="true">
+                <span class="brand-mark"></span>
+                <span class="brand-text">CircleLab</span>
+            </span>
+        </a>
+        <ul class="nav-menu">
+            <li><a href="index.html" class="nav-link active">Homepage</a></li>
+            <li><a href="../Quiz/quiz.html" class="nav-link">Quiz</a></li>
+            <li><a href="../Game/game.html" class="nav-link">Game</a></li>
+        </ul>
+        <div class="nav-right">
+            <!-- 中英双语切换 -->
+            <button id="langToggle" class="lang-btn">中文</button>
+            <!-- 夜间/日间模式切换按钮 -->
+            <button id="themeToggle" class="theme-btn" title="切换日夜模式"><i class="fas fa-moon"></i></button>
+            <button id="a11yToggleBtn" class="a11y-toggle-btn" type="button" aria-expanded="false">Accessibility</button>
+            <div id="a11yPanel" class="a11y-panel" aria-label="Accessibility controls">
+                <div class="a11y-controls">
+                    <button id="fontDownBtn" class="a11y-btn" type="button">A-</button>
+                    <button id="fontResetBtn" class="a11y-btn" type="button">A</button>
+                    <button id="fontUpBtn" class="a11y-btn" type="button">A+</button>
+                    <button id="colorSafeToggle" class="a11y-btn" type="button">Color Safe</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 面包屑导航（作业要求） -->
+    <div class="breadcrumb">
+        <a href="index.html">Homepage</a> >
+    </div>
+
+    <!-- 主内容区 -->
+    <main class="container">
+        <!-- 标题区域 -->
+        <section class="hero">
+            <h1>CircleLab – Starter Website Template for Learning</h1>
+            <p>CircleLab is a starter template for students, educators, and math enthusiasts to explore circle geometry theorems through interactive lessons, visual proofs, and practice exercises.</p>
+        </section>
+
+        <!-- 核心内容网格 -->
+        <div class="content-grid">
+            <!-- 左侧核心概念区域 -->
+            <div class="left-column">
+                <!-- 圆几何核心概念 -->
+                <div class="card concepts-card">
+                    <h2>Core Circle Geometry Concepts</h2>
+                    <div class="concept-item" data-theorem-index="0" id="concept1">
+                        <h3>Central Angle Theorem</h3>
+                        <p>The central angle measure equals its intercepted arc measure.</p>
+                    </div>
+                    <div class="concept-item" data-theorem-index="1" id="concept2">
+                        <h3>Inscribed Angle Theorem</h3>
+                        <p>An inscribed angle measures half of the arc it intercepts.</p>
+                    </div>
+                    <div class="concept-item" data-theorem-index="2" id="concept3">
+                        <h3>Tangent-Secant Angle</h3>
+                        <p>The angle between a tangent and secant equals half the difference of arcs.</p>
+                    </div>
+                    <div class="concept-item" data-theorem-index="3" id="concept4">
+                        <h3>Chord Properties</h3>
+                        <p>Equal chords subtend equal arcs and lie the same distance from the center.</p>
+                    </div>
+                    <div class="concept-item" data-theorem-index="4" id="concept5">
+                        <h3>Cyclic Quadrilateral</h3>
+                        <p>Opposite angles of a cyclic quadrilateral add up to 180°.</p>
+                    </div>
+                    <div class="concept-item" data-theorem-index="5" id="concept6">
+                        <h3>Angle in a Semicircle</h3>
+                        <p>An angle in a semicircle is always a right angle (90°).</p>
+                    </div>
+                    <div class="concept-item" data-theorem-index="6" id="concept7">
+                        <h3>Radius to Tangent</h3>
+                        <p>The radius drawn to a tangent point is perpendicular to the tangent line.</p>
+                    </div>
+                    <div class="concept-item" data-theorem-index="7" id="concept8">
+                        <h3>Alternate Segment Theorem</h3>
+                        <p>The angle between tangent and chord equals the angle in the opposite segment.</p>
+                    </div>
+                </div>
+
+                <!-- 视频区域 - 圆形定理动画演示 -->
+                <div class="card video-card">
+                    <h3 id="theorem-title" class="theorem-title">Central Angle Theorem</h3>
+                    <div class="theorem-controls">
+                        <button id="playPauseBtn" class="theorem-btn theorem-btn-compact">⏸ Pause</button>
+                    </div>
+                    <div class="canvas-container">
+                        <canvas id="theoremCanvas"></canvas>
+                    </div>
+                    <div id="theorem-info" class="theorem-info"></div>
+                    <div class="theorem-footer">
+                        <div class="theorem-navs">
+                            <button id="prevTheorem" class="theorem-btn">← Previous</button>
+                            <button id="nextTheorem" class="theorem-btn">Next →</button>
+                        </div>
+                        <div id="theorem-counter" class="theorem-counter">1 / 5</div>
+                    </div>
+                    <p id="theorem-description" class="theorem-description"></p>
+                                    </div>
+            </div>
+
+            <!-- 右侧功能区域 -->
+            <div class="right-column">
+                <!-- Game入口 -->
+                <div class="card action-card game-card" data-target="game" role="button" tabindex="0">
+                    <h3>Game</h3>
+                    <p>Play & practice circle rules</p>
+                </div>
+
+                <!-- Quiz入口 -->
+                <div class="card action-card quiz-card" data-target="quiz" role="button" tabindex="0">
+                    <h3>Quiz</h3>
+                    <p>Test your circle knowledge</p>
+                </div>
+
+                <!-- AI聊天机器人 -->
+                <div class="card ai-card">
+                    <h3 id="aiChatTitle">AI Chatbot</h3>
+                    <div class="chat-window">
+                        <div class="chat-history" id="chatHistory"></div>
+                        <div class="chat-input-row">
+                            <input id="chatInput" type="text" placeholder="Ask about circle geometry...">
+                            <button id="chatSendBtn" class="theorem-btn">Send</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- USP区域 - 核心优势 -->
+                <div class="card usp-card">
+                    <h2 id="usp-title">Our USP</h2>
+                    <div class="usp-items">
+                        <div class="usp-item" id="usp1">
+                            <i class="fas fa-graduation-cap"></i>
+                            <h4>Visual Learning</h4>
+                            <p>Interactive animations help visualize complex geometric relationships</p>
+                        </div>
+                        <div class="usp-item" id="usp2">
+                            <i class="fas fa-play-circle"></i>
+                            <h4>Interactive Control</h4>
+                            <p>Play/pause animations to inspect details at your own pace</p>
+                        </div>
+                        <div class="usp-item" id="usp3">
+                            <i class="fas fa-calculator"></i>
+                            <h4>Real-time Data</h4>
+                            <p>See actual angle values and measurements as animations progress</p>
+                        </div>
+                        <div class="usp-item" id="usp4">
+                            <i class="fas fa-language"></i>
+                            <h4>Bilingual Support</h4>
+                            <p>Learn in English or Chinese, switch anytime</p>
+                        </div>
+                        <div class="usp-item" id="usp5">
+                            <i class="fas fa-moon"></i>
+                            <h4>Dark Mode</h4>
+                            <p>Comfortable learning in any lighting condition</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 广告区域 -->
+                <div class="card ad-card">
+                    <h3>advertisement</h3>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 定理详情弹框 -->
+    <div class="modal-overlay hidden" id="theoremModal">
+        <div class="modal-card">
+            <button class="modal-close" id="modalCloseBtn">×</button>
+            <h2 id="modalTheoremTitle">Detail</h2>
+            <p id="modalTheoremBody"></p>
+            <p id="modalTheoremDetail" class="modal-detail"></p>
+            <button id="modalSelectBtn" class="theorem-btn">Use this animation</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="contactModal">
+        <div class="modal-card">
+            <button class="modal-close" id="contactModalCloseBtn">×</button>
+            <h2 id="contactTitle">Contact Us</h2>
+            <form id="contactForm" novalidate>
+                <label for="contactName" id="contactNameLabel">Name (optional)</label>
+                <input id="contactName" name="name" type="text" autocomplete="name" placeholder="How should we address you?">
+
+                <label for="contactEmail" id="contactEmailLabel">Email</label>
+                <input id="contactEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+
+                <label for="contactMessage" id="contactMessageLabel">Message</label>
+                <textarea id="contactMessage" name="message" rows="4" placeholder="Tell us what you need help with." required></textarea>
+
+                <button id="contactSubmitBtn" type="submit" class="theorem-btn">Send Message</button>
+                <p id="contactStatus" class="contact-status" aria-live="polite"></p>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="policyModal">
+        <div class="modal-card">
+            <button class="modal-close" id="policyModalCloseBtn">×</button>
+            <h2 id="policyTitle">Privacy & Preference</h2>
+            <p id="policySummary">We only store local preferences (language, theme, accessibility, consent choices) in your browser and do not send personal data to a server.</p>
+            <div class="policy-options">
+                <label><input type="checkbox" id="optOutAds"> <span id="optOutAdsLabel">Opt out of personalized ads</span></label>
+                <label><input type="checkbox" id="optOutAnalytics"> <span id="optOutAnalyticsLabel">Opt out of analytics cookies</span></label>
+                <label><input type="checkbox" id="hideAds"> <span id="hideAdsLabel">Hide ad banner</span></label>
+            </div>
+            <button id="savePolicyBtn" class="theorem-btn" type="button">Save Preferences</button>
+            <p id="policyStatus" class="policy-status" aria-live="polite"></p>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-links">
+            <button id="openContactModalBtn" type="button" class="footer-link-btn">Contact</button>
+            <button id="openPolicyModalBtn" type="button" class="footer-link-btn">Privacy</button>
+            <p class="contact-details">Email: <a href="mailto:2024213613@bupt.cn">2024213613@bupt.cn</a> | Phone: <a href="tel:+8613029905888">+86 130 2990 5888</a> | QQ: 1372884561</p>
+        </div>
+        <div class="copyright">
+            &copy; 2026 EBU5315 Circle Geometry Website
+        </div>
+    </footer>
+
+    <!-- 简单JS（V1版本基础交互） -->
+    <script src="script.js"></script>
+</body>
+</html>
